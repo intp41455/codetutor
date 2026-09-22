@@ -17,7 +17,8 @@ import {
   Activity,
   Bot,
   Award,
-  Bug
+  Bug,
+  Flame
 } from "lucide-react";
 import { Lesson, TrackInfo } from "../types";
 import { generateIntelligentExplanation } from "../utils/aiFallbackEngine";
@@ -570,6 +571,10 @@ export const CodecademyWorkspace: React.FC<CodecademyWorkspaceProps> = ({
                 <span>可视化物理调试器</span>
                 <span className="text-[9px] px-1.5 py-0.2 rounded bg-indigo-900/80 text-indigo-200 font-mono">
                   {traceSteps.length}步
+                </span>
+                <span className="hidden sm:inline-flex items-center gap-0.5 text-[9px] px-1 py-0.2 rounded bg-rose-500/20 text-rose-300 font-sans border border-rose-500/30">
+                  <Flame className="h-2.5 w-2.5 text-rose-400" />
+                  分支热力图
                 </span>
               </button>
 
