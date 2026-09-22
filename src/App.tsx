@@ -27,6 +27,22 @@ const INITIAL_PROGRESS: UserProgress = {
   unlockedBadges: ["小白启航"],
 };
 
+const normalizeProgress = (raw: any): UserProgress => {
+  if (!raw || typeof raw !== "object") return INITIAL_PROGRESS;
+  return {
+    ...INITIAL_PROGRESS,
+    ...raw,
+    completedLessonIds: Array.isArray(raw.completedLessonIds) ? raw.completedLessonIds : [],
+    completedGitHubLabIds: Array.isArray(raw.completedGitHubLabIds) ? raw.completedGitHubLabIds : [],
+    completedVibeCases: Array.isArray(raw.completedVibeCases) ? raw.completedVibeCases : [],
+    completedDailyChallengeIds: Array.isArray(raw.completedDailyChallengeIds) ? raw.completedDailyChallengeIds : [],
+    unlockedBadges: Array.isArray(raw.unlockedBadges) ? raw.unlockedBadges : INITIAL_PROGRESS.unlockedBadges,
+    xp: typeof raw.xp === "number" ? raw.xp : INITIAL_PROGRESS.xp,
+    currentStreakDays: typeof raw.currentStreakDays === "number" ? raw.currentStreakDays : INITIAL_PROGRESS.currentStreakDays,
+    capstonePassed: Boolean(raw.capstonePassed),
+  };
+};
+
 export default function App() {
   const [activeTab, setActiveTab] = useState<NavTab>("curriculum");
   const [activeTrackId, setActiveTrackId] = useState<LearningTrackId>("track-python");
@@ -42,7 +58,9 @@ export default function App() {
   const [progress, setProgress] = useState<UserProgress>(() => {
     try {
       const saved = localStorage.getItem("codemaster_progress");
-      if (saved) return JSON.parse(saved);
+      if (saved) {
+        return normalizeProgress(JSON.parse(saved));
+      }
     } catch (e) {
       // fallback
     }
@@ -210,7 +228,7 @@ export default function App() {
                   onPrevLesson={handlePrevLesson}
                   onNextLesson={handleNextLesson}
                   onLessonComplete={handleLessonComplete}
-                  isCompleted={progress.completedLessonIds.includes(currentLesson.id)}
+                  isCompleted={Boolean(progress?.completedLessonIds?.includes(currentLesson.id))}
                   onAskAIAboutCode={(code, lang, q) => {
                     setShowAITutor(true);
                   }}
@@ -224,7 +242,7 @@ export default function App() {
         {activeTab === "github-lab" && (
           <GitHubDeconstructionLab
             onCompleteProject={handleCompleteGitHubLab}
-            completedProjectIds={progress.completedGitHubLabIds}
+            completedProjectIds={progress.completedGitHubLabIds || []}
           />
         )}
 
@@ -232,7 +250,7 @@ export default function App() {
         {activeTab === "vibe-coding" && (
           <VibeCodingControlRoom
             onCompleteCase={handleCompleteVibeCase}
-            completedCaseIds={progress.completedVibeCases}
+            completedCaseIds={progress.completedVibeCases || []}
           />
         )}
 

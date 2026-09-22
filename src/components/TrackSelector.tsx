@@ -171,8 +171,9 @@ export const TrackSelector: React.FC<TrackSelectorProps> = ({
           const isSelected = track.id === currentTrackId;
 
           // Calculate completed lessons in this track
+          const completedLessonIds = progress?.completedLessonIds || [];
           const completedCount = track.lessons.filter((l) =>
-            progress.completedLessonIds.includes(l.id)
+            completedLessonIds.includes(l.id)
           ).length;
           const totalLessons = track.lessons.length;
           const progressPercent = Math.round((completedCount / (totalLessons || 1)) * 100);
