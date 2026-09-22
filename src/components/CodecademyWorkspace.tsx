@@ -18,6 +18,7 @@ import {
   Bot
 } from "lucide-react";
 import { Lesson, TrackInfo } from "../types";
+import { generateIntelligentExplanation } from "../utils/aiFallbackEngine";
 
 interface CodecademyWorkspaceProps {
   lesson: Lesson;
@@ -126,9 +127,15 @@ export const CodecademyWorkspace: React.FC<CodecademyWorkspaceProps> = ({
         }),
       });
       const data = await res.json();
-      setAiExplanation(data.explanation);
+      if (data && data.explanation) {
+        setAiExplanation(data.explanation);
+      } else {
+        const local = generateIntelligentExplanation(code, lesson.language, undefined, `请拆解【${lesson.title}】代码`);
+        setAiExplanation(local.explanation);
+      }
     } catch (e: any) {
-      setAiExplanation("AI 解析连接超时，请检查网络或配置 API Key。");
+      const local = generateIntelligentExplanation(code, lesson.language, undefined, `请拆解【${lesson.title}】代码`);
+      setAiExplanation(local.explanation);
     } finally {
       setIsExplaining(false);
     }

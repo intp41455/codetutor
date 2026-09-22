@@ -5,6 +5,11 @@ import { GoogleGenAI } from "@google/genai";
 import { createServer as createViteServer } from "vite";
 import { auditCodeLocally } from "./src/utils/codeAuditEngine";
 import { runFullPlatformTests } from "./src/utils/testRunner";
+import { 
+  generateIntelligentExplanation, 
+  generateIntelligentReview, 
+  generateIntelligentTutorReply 
+} from "./src/utils/aiFallbackEngine";
 
 dotenv.config();
 
@@ -13,41 +18,54 @@ const PORT = 3000;
 
 app.use(express.json({ limit: "5mb" }));
 
-// Lazy initialization of Gemini AI
+// State tracking for Gemini API availability
+let geminiAccessDenied = false;
 let aiClient: GoogleGenAI | null = null;
+
 function getGeminiClient(): GoogleGenAI | null {
+  if (geminiAccessDenied) {
+    return null;
+  }
   if (!aiClient) {
     const apiKey = process.env.GEMINI_API_KEY;
-    if (apiKey && apiKey !== "MY_GEMINI_API_KEY") {
+    if (apiKey && apiKey !== "MY_GEMINI_API_KEY" && apiKey.trim().length > 0) {
       aiClient = new GoogleGenAI({ apiKey });
     }
   }
   return aiClient;
 }
 
+function handleGeminiError(error: any, context: string): void {
+  const errMsg = String(error?.message || error || "");
+  const errStatus = error?.status;
+  const isPermissionOrAuthError = 
+    errStatus === "PERMISSION_DENIED" || 
+    errStatus === "UNAUTHENTICATED" || 
+    errMsg.includes("denied access") || 
+    errMsg.includes("403") || 
+    errMsg.includes("PERMISSION_DENIED") ||
+    errMsg.includes("API key not valid");
+
+  if (isPermissionOrAuthError) {
+    geminiAccessDenied = true;
+    aiClient = null;
+    console.warn(`[Gemini Safe Fallback] ${context}: Project permission restriction (${errMsg}). Switched gracefully to Intelligent Fallback Engine.`);
+  } else {
+    console.warn(`[Gemini Safe Fallback] ${context}: Transient AI service failure (${errMsg}). Serving deterministic fallback response.`);
+  }
+}
+
 // 1. Code Explanation Endpoint (Designed for beginners with visual metaphors)
 app.post("/api/gemini/explain", async (req, res) => {
+  const { code = "", language = "python", focusLine, question } = req.body;
+  const fallback = generateIntelligentExplanation(code, language, focusLine, question);
+
+  const ai = getGeminiClient();
+  if (!ai) {
+    return res.json(fallback);
+  }
+
   try {
-    const { code, language, focusLine, question } = req.body;
-    const ai = getGeminiClient();
-
-    if (!ai) {
-      // High-quality deterministic fallback for instant offline/keyless experience
-      return res.json({
-        explanation: `### 💡 核心逻辑通俗拆解 (${language || "代码"})
-这段代码的核心作用是：构建一个结构化的逻辑单元。
-- **输入与初始化**：首先建立基础变量并分配内存，相当于在桌上摆好容器；
-- **核心计算/流转**：通过条件判断或循环，对数据进行步进处理；
-- **输出与返回**：返回明确的结果或将状态同步给下一个调用方。
-
-> **小白直觉记忆法**：把这段代码想象成一个自动化流水线，零件从入口送入，传感器（条件分支）检查合格与否，加工机械手（函数执行）改变形态，最后送出包装盒。
-
-*提示：配置 GEMINI_API_KEY 可解锁基于代码具体语义的逐行深度 AI 伴读。*`,
-        mentalModel: "流水线与零件加工模型",
-        keyTakeaway: "理解代码时，先抓数据输入和最终输出，再看中间经历了哪几步变换。"
-      });
-    }
-
     const prompt = `你是一位世界顶级的计算机科学名师，专门指导完全零基础的编程初学者，同时也是开源项目架构师。
 学员正在学习：${language || "编程语言"}。
 代码如下：
@@ -69,43 +87,31 @@ ${question ? `学员的问题是：${question}` : "请通俗、生动且深刻�
       contents: prompt,
     });
 
-    res.json({ explanation: response.text || "无法生成解析，请重试。" });
+    if (response.text) {
+      return res.json({
+        explanation: response.text,
+        mentalModel: fallback.mentalModel,
+        keyTakeaway: fallback.keyTakeaway
+      });
+    }
+    return res.json(fallback);
   } catch (error: any) {
-    console.error("Error in /api/gemini/explain:", error);
-    res.status(500).json({ error: error.message || "Failed to explain code" });
+    handleGeminiError(error, "/api/gemini/explain");
+    return res.json(fallback);
   }
 });
 
 // 2. Vibe Coding Code Review & Bug Hunting Endpoint
 app.post("/api/gemini/review", async (req, res) => {
+  const { code = "", language = "python", intent } = req.body;
+  const fallback = generateIntelligentReview(code, language, intent);
+
+  const ai = getGeminiClient();
+  if (!ai) {
+    return res.json(fallback);
+  }
+
   try {
-    const { code, language, intent, knownRisks } = req.body;
-    const ai = getGeminiClient();
-
-    if (!ai) {
-      return res.json({
-        summary: "AI 代码已完成基础静态审计。",
-        vulnerabilities: [
-          {
-            type: "隐式异常捕获与状态悬空",
-            severity: "HIGH",
-            location: "主要业务逻辑块",
-            description: "AI经常生成通用的 try...except Exception 结构，导致真实的底层网络或类型错误被静默吞噬，系统假死。",
-            fix: "精细化捕获特定异常类型，并增加结构化错误日志与补偿回滚。"
-          },
-          {
-            type: "异步事件循环阻塞隐患",
-            severity: "MEDIUM",
-            location: "IO操作",
-            description: "在异步函数中调用了同步阻塞的库（如 requests 或 time.sleep），会导致单线程事件循环整体卡死。",
-            fix: "替换为原生异步库（如 httpx / asyncio.sleep）或放入 run_in_executor 线程池。"
-          }
-        ],
-        mentalModelCheck: "请反问自己：如果外部接口超时5秒，这段代码是优雅重试还是引发连锁雪崩？",
-        suggestedRefactor: code
-      });
-    }
-
     const prompt = `你是资深架构师和 Vibe Coding 质量审查官。
 当前学员正在通过 AI 辅助（Vibe Coding）完成复杂业务或智能体模块，但必须做到【对 AI 写的每一行代码都了然于心，不当无知的使用者】。
 代码语言：${language || "Python"}
@@ -131,33 +137,24 @@ ${code}
       contents: prompt,
     });
 
-    res.json({ review: response.text || "无法生成审查报告。" });
+    return res.json({ review: response.text || fallback.review });
   } catch (error: any) {
-    console.error("Error in /api/gemini/review:", error);
-    res.status(500).json({ error: error.message || "Failed to review code" });
+    handleGeminiError(error, "/api/gemini/review");
+    return res.json(fallback);
   }
 });
 
 // 3. Interactive AI Tutor Chat Endpoint
 app.post("/api/gemini/tutor", async (req, res) => {
+  const { messages = [], currentTopic, currentTrack, currentCode } = req.body;
+  const fallback = generateIntelligentTutorReply(messages, currentTopic, currentTrack, currentCode);
+
+  const ai = getGeminiClient();
+  if (!ai) {
+    return res.json(fallback);
+  }
+
   try {
-    const { messages, currentTopic, currentTrack, currentCode } = req.body;
-    const ai = getGeminiClient();
-
-    if (!ai) {
-      const lastUserMsg = messages && messages.length > 0 ? messages[messages.length - 1].content : "";
-      return res.json({
-        reply: `收到你的问题："${lastUserMsg}"！
-在 **${currentTrack || "编程"}** 的学习中，初学者常常会被概念的抽象性困扰。
-记住：
-1. **代码本质是数据的变换**：所有的程序，哪怕是再复杂的Spring Boot或Multi-Agent，都是输入 -> 状态变换 -> 输出；
-2. **先看全貌，再追单点**：看开源项目或运行代码时，不要一头扎进几千行细节，先看入口（Main/Controller），画出架构草图；
-3. **动手改一个参数**：最快掌握代码的方法就是故意改错一个值，看控制台报什么错，然后修复它！
-
-*提示：配置 GEMINI_API_KEY 可与 AI 导师进行全方位的个性化实时答疑互动。*`
-      });
-    }
-
     const conversationHistory = Array.isArray(messages) ? messages.map((m: any) => ({
       role: m.role === "assistant" ? "model" : "user",
       parts: [{ text: m.content }]
@@ -183,10 +180,10 @@ ${currentCode ? `当前编辑器里的代码：\n\`\`\`\n${currentCode}\n\`\`\``
     const lastMsg = conversationHistory[conversationHistory.length - 1]?.parts[0]?.text || "请给我一些学习指引";
     const response = await chat.sendMessage({ message: lastMsg });
 
-    res.json({ reply: response.text || "我在这里，请随时提问！" });
+    return res.json({ reply: response.text || fallback.reply });
   } catch (error: any) {
-    console.error("Error in /api/gemini/tutor:", error);
-    res.status(500).json({ error: error.message || "Failed to chat with tutor" });
+    handleGeminiError(error, "/api/gemini/tutor");
+    return res.json(fallback);
   }
 });
 
@@ -236,8 +233,13 @@ ${code}
           deepInsight: text,
           architectPatch: codeBlockMatch ? codeBlockMatch[1].trim() : undefined,
         };
-      } catch (e) {
-        console.warn("Gemini audit enhancement skipped:", e);
+      } catch (e: any) {
+        handleGeminiError(e, "/api/audit-code");
+        const topIssue = localReport.issues[0];
+        aiEnhancement = {
+          deepInsight: `架构师安全洞察：当前代码中核心风险为【${topIssue.title}】。在生产环境中，该漏洞可能引发非预期的异常穿透或系统资源耗尽。建议按照检查清单补充边界拦截与防御重构。`,
+          architectPatch: undefined,
+        };
       }
     }
 
@@ -246,8 +248,13 @@ ${code}
       aiEnhancement
     });
   } catch (error: any) {
-    console.error("Error in /api/audit-code:", error);
-    res.status(500).json({ error: error.message || "Failed to audit code" });
+    console.warn("Error in /api/audit-code:", error?.message || error);
+    // Safe fallback even if audit crashes
+    const fallbackReport = auditCodeLocally(req.body.code || "", req.body.language || "python");
+    res.json({
+      report: fallbackReport,
+      aiEnhancement: {}
+    });
   }
 });
 

@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { 
+  Lightbulb,
   FileCode, 
   Coffee, 
   Network, 
@@ -34,6 +35,7 @@ interface TrackSelectorProps {
 }
 
 const ICON_MAP: Record<string, any> = {
+  Lightbulb,
   FileCode,
   Coffee,
   Network,
@@ -58,9 +60,10 @@ export const TrackSelector: React.FC<TrackSelectorProps> = ({
   todayChallenge,
   onOpenDailyChallenge,
 }) => {
-  const [filter, setFilter] = useState<"all" | "foundation" | "framework" | "agent">("all");
+  const [filter, setFilter] = useState<"all" | "zero" | "foundation" | "framework" | "agent">("all");
 
   const filteredTracks = tracks.filter((track) => {
+    if (filter === "zero") return track.id === "track-zero";
     if (filter === "foundation") return ["track-python", "track-java", "track-linux", "track-typescript", "track-ds", "track-sql"].includes(track.id);
     if (filter === "framework") return ["track-fastapi", "track-spring-boot"].includes(track.id);
     if (filter === "agent") return ["track-spring-ai", "track-agent", "track-multi-agent", "track-agent-systems"].includes(track.id);
@@ -128,10 +131,18 @@ export const TrackSelector: React.FC<TrackSelectorProps> = ({
           <h2 className="text-lg font-bold text-white">{tracks.length} 大进阶技术体系</h2>
         </div>
 
-        <div className="flex items-center gap-1 rounded-lg bg-slate-900 p-1 border border-slate-800 text-xs font-medium">
+        <div className="flex items-center gap-1 rounded-lg bg-slate-900 p-1 border border-slate-800 text-xs font-medium overflow-x-auto">
+          <button
+            onClick={() => setFilter("zero")}
+            className={`rounded-md px-3 py-1.5 transition-all flex items-center gap-1.5 whitespace-nowrap ${
+              filter === "zero" ? "bg-amber-500 text-slate-950 font-bold shadow-md shadow-amber-500/20" : "text-amber-400 hover:text-amber-300 hover:bg-amber-500/10"
+            }`}
+          >
+            <span>🍼 零基础启蒙 (1)</span>
+          </button>
           <button
             onClick={() => setFilter("all")}
-            className={`rounded-md px-3 py-1.5 transition-all ${
+            className={`rounded-md px-3 py-1.5 transition-all whitespace-nowrap ${
               filter === "all" ? "bg-indigo-600 text-white shadow" : "text-slate-400 hover:text-white"
             }`}
           >
@@ -139,15 +150,15 @@ export const TrackSelector: React.FC<TrackSelectorProps> = ({
           </button>
           <button
             onClick={() => setFilter("foundation")}
-            className={`rounded-md px-3 py-1.5 transition-all ${
+            className={`rounded-md px-3 py-1.5 transition-all whitespace-nowrap ${
               filter === "foundation" ? "bg-indigo-600 text-white shadow" : "text-slate-400 hover:text-white"
             }`}
           >
-            工程基石 (4)
+            工程基石 (6)
           </button>
           <button
             onClick={() => setFilter("framework")}
-            className={`rounded-md px-3 py-1.5 transition-all ${
+            className={`rounded-md px-3 py-1.5 transition-all whitespace-nowrap ${
               filter === "framework" ? "bg-indigo-600 text-white shadow" : "text-slate-400 hover:text-white"
             }`}
           >
@@ -155,11 +166,11 @@ export const TrackSelector: React.FC<TrackSelectorProps> = ({
           </button>
           <button
             onClick={() => setFilter("agent")}
-            className={`rounded-md px-3 py-1.5 transition-all ${
+            className={`rounded-md px-3 py-1.5 transition-all whitespace-nowrap ${
               filter === "agent" ? "bg-indigo-600 text-white shadow" : "text-slate-400 hover:text-white"
             }`}
           >
-            AI与智能体 (3)
+            AI与智能体 (4)
           </button>
         </div>
       </div>
@@ -169,6 +180,7 @@ export const TrackSelector: React.FC<TrackSelectorProps> = ({
         {filteredTracks.map((track) => {
           const IconComponent = ICON_MAP[track.icon] || FileCode;
           const isSelected = track.id === currentTrackId;
+          const isZeroTrack = track.id === "track-zero";
 
           // Calculate completed lessons in this track
           const completedLessonIds = progress?.completedLessonIds || [];
@@ -183,19 +195,30 @@ export const TrackSelector: React.FC<TrackSelectorProps> = ({
               key={track.id}
               onClick={() => onSelectTrack(track.id)}
               className={`group relative flex flex-col justify-between rounded-xl border p-5 transition-all cursor-pointer ${
-                isSelected
-                  ? "border-indigo-500/80 bg-slate-900/90 shadow-lg shadow-indigo-500/10 ring-1 ring-indigo-500/50"
-                  : "border-slate-800 bg-slate-900/40 hover:border-slate-700 hover:bg-slate-900/80 hover:shadow-md"
+                isZeroTrack
+                  ? isSelected
+                    ? "border-amber-500/90 bg-gradient-to-br from-amber-950/40 via-slate-900 to-slate-900 shadow-xl shadow-amber-500/10 ring-2 ring-amber-500/40"
+                    : "border-amber-500/40 bg-gradient-to-br from-amber-950/20 via-slate-900/60 to-slate-900/80 hover:border-amber-500/80 hover:shadow-lg"
+                  : isSelected
+                    ? "border-indigo-500/80 bg-slate-900/90 shadow-lg shadow-indigo-500/10 ring-1 ring-indigo-500/50"
+                    : "border-slate-800 bg-slate-900/40 hover:border-slate-700 hover:bg-slate-900/80 hover:shadow-md"
               }`}
             >
               <div className="space-y-3">
                 {/* Track Icon & Badges */}
                 <div className="flex items-center justify-between">
-                  <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-slate-800 border border-slate-700 text-indigo-400 group-hover:scale-105 transition-transform">
+                  <div className={`flex h-11 w-11 items-center justify-center rounded-xl border group-hover:scale-105 transition-transform ${
+                    isZeroTrack ? "bg-amber-500/10 border-amber-500/30 text-amber-400" : "bg-slate-800 border-slate-700 text-indigo-400"
+                  }`}>
                     <IconComponent className="h-6 w-6" />
                   </div>
 
                   <div className="flex items-center gap-1.5">
+                    {isZeroTrack && (
+                      <span className="rounded-full bg-amber-500/20 border border-amber-500/40 px-2 py-0.5 text-[10px] font-bold text-amber-300 animate-pulse">
+                        🍼 零基础必选
+                      </span>
+                    )}
                     {progressPercent === 100 && (
                       <span className="flex items-center gap-1 rounded-full bg-emerald-500/10 border border-emerald-500/30 px-2 py-0.5 text-[11px] font-semibold text-emerald-400">
                         <CheckCircle2 className="h-3 w-3" />
@@ -210,10 +233,14 @@ export const TrackSelector: React.FC<TrackSelectorProps> = ({
 
                 {/* Title & Tagline */}
                 <div>
-                  <h3 className="font-bold text-base text-white group-hover:text-indigo-300 transition-colors">
+                  <h3 className={`font-bold text-base transition-colors ${
+                    isZeroTrack ? "text-amber-200 group-hover:text-amber-100" : "text-white group-hover:text-indigo-300"
+                  }`}>
                     {track.title}
                   </h3>
-                  <p className="text-xs text-indigo-400 font-medium mt-0.5">
+                  <p className={`text-xs font-medium mt-0.5 ${
+                    isZeroTrack ? "text-amber-400/90" : "text-indigo-400"
+                  }`}>
                     {track.tagline}
                   </p>
                 </div>

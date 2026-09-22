@@ -11,6 +11,7 @@ import {
   Terminal,
   ChevronRight
 } from "lucide-react";
+import { generateIntelligentTutorReply } from "../utils/aiFallbackEngine";
 
 interface Message {
   role: "user" | "assistant";
@@ -82,14 +83,23 @@ export const AITutorDrawer: React.FC<AITutorDrawerProps> = ({
         }),
       });
       const data = await res.json();
-      setMessages((prev) => [
-        ...prev,
-        { role: "assistant", content: data.reply || "收到！正在为你整理技术心法..." },
-      ]);
+      if (data && data.reply) {
+        setMessages((prev) => [
+          ...prev,
+          { role: "assistant", content: data.reply },
+        ]);
+      } else {
+        const local = generateIntelligentTutorReply(newMessages, currentLessonTitle, currentTrackTitle, currentCode);
+        setMessages((prev) => [
+          ...prev,
+          { role: "assistant", content: local.reply },
+        ]);
+      }
     } catch (err: any) {
+      const local = generateIntelligentTutorReply(newMessages, currentLessonTitle, currentTrackTitle, currentCode);
       setMessages((prev) => [
         ...prev,
-        { role: "assistant", content: "网络连接出现微小抖动，请重试或检查配置。" },
+        { role: "assistant", content: local.reply },
       ]);
     } finally {
       setIsLoading(false);

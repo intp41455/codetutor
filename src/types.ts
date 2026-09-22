@@ -1,4 +1,5 @@
 export type LearningTrackId = 
+  | "track-zero"
   | "track-python"
   | "track-java"
   | "track-linux"

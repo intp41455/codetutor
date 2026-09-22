@@ -1,6 +1,8 @@
 import { TrackInfo } from "../types";
+import { ZERO_TRACK } from "./zeroTrackData";
 
 export const TRACKS_DATA: TrackInfo[] = [
+  ZERO_TRACK,
   {
     id: "track-python",
     title: "1. Python 核心基石",
@@ -22,23 +24,21 @@ export const TRACKS_DATA: TrackInfo[] = [
           metaphor: "在 Python 里，数据实体（如数字 42、字符串 'Alice'）是存放在内存中的气球，变量名并不是装着东西的盒子，而是一根拴在气球上的绳子（便利贴）。给变量赋值，就是把标签贴到对象上。",
           keyIntuition: "多个变量指向同一个对象时，修改对象内容会同步影响所有贴了标签的变量。"
         },
-        explanationMarkdown: `### 🎯 什么是变量？
-对于完全零基础的你，计算机的内存就像一个巨大的货架。
+        explanationMarkdown: `### 🎯 进阶一步：Python 里的变量与便签
+在前面的【0. 纯小白启蒙】中，我们把变量比喻成了“贴标签的储物盒”。
+现在进入 Python 核心基石，我们将更上一层楼：在 Python 这门语言里，数据就像一个个飘在空中的气球，而变量名其实是一根根拴在气球上的**便签绳**！
+
 当你写下：
 \`\`\`python
 user_name = "Alice"
 user_age = 24
 \`\`\`
 计算机在幕后做了两件事：
-1. **在内存里创建了一个字符串对象** \`"Alice"\` 和数字 \`24\`；
-2. **把标签名** \`user_name\` 和 \`user_age\` 绑定到这两个对象上。
+1. **在内存里吹起了一个装有文字的气球** \`"Alice"\` 和数字气球 \`24\`；
+2. **拿来写着标签名字的绳子** \`user_name\` 和 \`user_age\`，拴到了这两个气球上。
 
-### 💡 为什么这在 GitHub 开源项目中至关重要？
-在阅读像 \`FastAPI\` 或 \`LangChain\` 这样的大型开源代码时，你会频繁看到：
-\`\`\`python
-current_agent = agent_pool.get_active()
-\`\`\`
-明白“引用传递”能让你一眼看穿：改动 \`current_agent\` 的属性，其实改的是共享状态池中的同一个对象。
+### 💡 为什么这在实际项目中至关重要？
+因为如果有多根绳子拴在同一个气球上，只要其中一个人顺着绳子给气球画了个笑脸，所有人看到的气球都会变成笑脸！这就是为什么改动变量可以同步协作的核心奥秘。
 
 ### 📋 本节任务：
 请在右侧编辑器中：

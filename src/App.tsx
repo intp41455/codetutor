@@ -45,8 +45,8 @@ const normalizeProgress = (raw: any): UserProgress => {
 
 export default function App() {
   const [activeTab, setActiveTab] = useState<NavTab>("curriculum");
-  const [activeTrackId, setActiveTrackId] = useState<LearningTrackId>("track-python");
-  const [activeLessonId, setActiveLessonId] = useState<string>("py-101");
+  const [activeTrackId, setActiveTrackId] = useState<LearningTrackId>("track-zero");
+  const [activeLessonId, setActiveLessonId] = useState<string>("zero-001");
   const [isWorkspaceOpen, setIsWorkspaceOpen] = useState<boolean>(false);
   const [showAITutor, setShowAITutor] = useState<boolean>(false);
   const [showCapstoneModal, setShowCapstoneModal] = useState<boolean>(false);

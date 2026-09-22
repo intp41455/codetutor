@@ -15,6 +15,7 @@ import {
 } from "lucide-react";
 import { VIBE_CODING_CASES } from "../data/vibeCodingLabData";
 import { VibeCodingCase } from "../types";
+import { generateIntelligentReview } from "../utils/aiFallbackEngine";
 
 interface VibeCodingControlRoomProps {
   onCompleteCase: (caseId: string) => void;
@@ -64,9 +65,15 @@ export const VibeCodingControlRoom: React.FC<VibeCodingControlRoomProps> = ({
         }),
       });
       const data = await res.json();
-      setAiReviewOutput(data.review || JSON.stringify(data, null, 2));
+      if (data && data.review) {
+        setAiReviewOutput(data.review);
+      } else {
+        const local = generateIntelligentReview(userCode, currentCase.language, currentCase.aiPromptUsed);
+        setAiReviewOutput(local.review);
+      }
     } catch (e: any) {
-      setAiReviewOutput("AI 审查接口连接失败，请检查网络。");
+      const local = generateIntelligentReview(userCode, currentCase.language, currentCase.aiPromptUsed);
+      setAiReviewOutput(local.review);
     } finally {
       setIsReviewing(false);
     }
