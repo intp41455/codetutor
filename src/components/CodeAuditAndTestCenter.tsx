@@ -19,7 +19,7 @@ import {
   ArrowRight
 } from "lucide-react";
 import { AuditReport, auditCodeLocally } from "../utils/codeAuditEngine";
-import { runFullPlatformTests } from "../../scripts/test_platform";
+import { runFullPlatformTests } from "../utils/testRunner";
 
 interface CodeAuditAndTestCenterProps {
   onBackToCurriculum?: () => void;

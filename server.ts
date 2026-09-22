@@ -4,7 +4,7 @@ import dotenv from "dotenv";
 import { GoogleGenAI } from "@google/genai";
 import { createServer as createViteServer } from "vite";
 import { auditCodeLocally } from "./src/utils/codeAuditEngine";
-import { runFullPlatformTests } from "./scripts/test_platform";
+import { runFullPlatformTests } from "./src/utils/testRunner";
 
 dotenv.config();
 
