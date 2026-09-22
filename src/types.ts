@@ -47,6 +47,35 @@ export interface Lesson {
   githubAnalogy?: string; // 在真实GitHub开源项目中的对应物
 }
 
+export interface TrackEnterpriseProject {
+  projectName: string;
+  projectTagline: string;
+  targetScenario: string;
+  zeroBasePromise: string;
+  architectureLayers: {
+    name: string;
+    role: string;
+    details: string;
+  }[];
+  acceptanceCriteria: {
+    id: string;
+    title: string;
+    description: string;
+    standard: string;
+  }[];
+  deliverableFiles: {
+    fileName: string;
+    language: string;
+    description: string;
+    productionCode: string;
+  }[];
+  verificationSteps: {
+    stepName: string;
+    commandOrAction: string;
+    expectedOutcome: string;
+  }[];
+}
+
 export interface TrackInfo {
   id: LearningTrackId;
   title: string;
@@ -57,6 +86,7 @@ export interface TrackInfo {
   tags: string[];
   lessons: Lesson[];
   capstoneChallenge: string;
+  enterpriseProject: TrackEnterpriseProject;
 }
 
 // GitHub 陌生项目拆解模型
@@ -183,6 +213,7 @@ export interface UserProgress {
   completedGitHubLabIds: string[];
   completedVibeCases: string[];
   completedDailyChallengeIds?: string[];
+  completedTrackProjectIds?: string[];
   lastDailyChallengeDate?: string;
   capstonePassed: boolean;
   xp: number;

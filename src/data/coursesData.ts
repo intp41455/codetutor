@@ -1,5 +1,6 @@
 import { TrackInfo } from "../types";
 import { ZERO_TRACK } from "./zeroTrackData";
+import { TRACK_ENTERPRISE_PROJECTS } from "./trackEnterpriseProjectsData";
 
 export const TRACKS_DATA: TrackInfo[] = [
   ZERO_TRACK,
@@ -12,6 +13,7 @@ export const TRACKS_DATA: TrackInfo[] = [
     badgeColor: "emerald",
     tags: ["入门首选", "AI原生语言", "动态解释"],
     capstoneChallenge: "实现一个带类型注解与异常处理的工业级数据解析流水线",
+    enterpriseProject: TRACK_ENTERPRISE_PROJECTS["track-python"],
     lessons: [
       {
         id: "py-101",
@@ -231,6 +233,7 @@ asyncio.run(main())
     badgeColor: "amber",
     tags: ["企业微服务", "静态强类型", "JVM底座"],
     capstoneChallenge: "用 Java 设计一个带线程安全缓存与策略模式的订单结算处理器",
+    enterpriseProject: TRACK_ENTERPRISE_PROJECTS["track-java"],
     lessons: [
       {
         id: "java-101",
@@ -401,6 +404,7 @@ public class MultiModelRouter {
     badgeColor: "indigo",
     tags: ["性能核心", "架构内功", "工程直觉"],
     capstoneChallenge: "用哈希表与双向链表手动实现一个 O(1) 复杂度的 LRU 缓存系统",
+    enterpriseProject: TRACK_ENTERPRISE_PROJECTS["track-ds"],
     lessons: [
       {
         id: "ds-101",
@@ -544,6 +548,7 @@ print("第2轮可执行任务:", get_executable_tasks(current_done))
     badgeColor: "cyan",
     tags: ["持久化核心", "关系代数", "ACID事务"],
     capstoneChallenge: "设计支持高并发下防止超卖与扣款丢失的 SQL 事务与索引优化方案",
+    enterpriseProject: TRACK_ENTERPRISE_PROJECTS["track-sql"],
     lessons: [
       {
         id: "sql-101",
@@ -617,6 +622,7 @@ ORDER BY latency_ms DESC;
     badgeColor: "emerald",
     tags: ["AI后端首选", "异步高吞吐", "类型驱动"],
     capstoneChallenge: "从零搭建一个支持 JWT 鉴权、流式打字机输出与自动化 OpenAPI 文档的 Agent 微服务",
+    enterpriseProject: TRACK_ENTERPRISE_PROJECTS["track-fastapi"],
     lessons: [
       {
         id: "fastapi-101",
@@ -716,6 +722,7 @@ print("FastAPI 路由已成功注册！")
     badgeColor: "emerald",
     tags: ["企业微服务", "IOC控制反转", "高可用架构"],
     capstoneChallenge: "实现一个包含自定义注解切面、统一异常拦截与声明式调用的 Spring Boot 服务",
+    enterpriseProject: TRACK_ENTERPRISE_PROJECTS["track-spring-boot"],
     lessons: [
       {
         id: "sb-101",
@@ -829,6 +836,7 @@ public class AgentOrchestratorService {
     badgeColor: "rose",
     tags: ["企业级AI", "RAG知识库", "VectorStore"],
     capstoneChallenge: "基于 Spring AI 实现企业级私有知识库智能问答与本地向量检索全流程",
+    enterpriseProject: TRACK_ENTERPRISE_PROJECTS["track-spring-ai"],
     lessons: [
       {
         id: "sai-101",
@@ -939,6 +947,7 @@ public class MiniRagPipeline {
     badgeColor: "purple",
     tags: ["AI Agent", "ReAct循环", "函数调用"],
     capstoneChallenge: "手动编写一个包含工具注册表、最大反思步数限制与记忆回滚的原生 Python Agent",
+    enterpriseProject: TRACK_ENTERPRISE_PROJECTS["track-agent"],
     lessons: [
       {
         id: "agent-101",
@@ -1037,6 +1046,7 @@ print(agent.run("帮我分析项目结构"))
     badgeColor: "blue",
     tags: ["多智能体", "Swarms", "LangGraph"],
     capstoneChallenge: "构建一个由产品经理 Agent、研发 Agent 与测试 Agent 构成的自主软件开发微团队",
+    enterpriseProject: TRACK_ENTERPRISE_PROJECTS["track-multi-agent"],
     lessons: [
       {
         id: "multi-101",
@@ -1144,6 +1154,7 @@ print(result)
     badgeColor: "purple",
     tags: ["多智能体前沿", "合同网协议", "架构与通信", "工业落地"],
     capstoneChallenge: "基于合同网协议（CNP）与共享黑板架构，从零搭建一个具备自我反思、竞标调度与对抗审查的多智能体微型软件公司",
+    enterpriseProject: TRACK_ENTERPRISE_PROJECTS["track-agent-systems"],
     lessons: [
       {
         id: "agent-sys-101",
@@ -1832,6 +1843,7 @@ firm.step4_qa_tester(code)
     badgeColor: "rose",
     tags: ["生产级底座", "命令行必修", "服务自愈", "Docker基石"],
     capstoneChallenge: "编写一个生产级 Linux 服务守护配置与故障自愈脚本，秒级排查端口冲突并守护后台 Agent 服务",
+    enterpriseProject: TRACK_ENTERPRISE_PROJECTS["track-linux"],
     lessons: [
       {
         id: "linux-101",
@@ -2268,6 +2280,7 @@ journalctl -u agent-runner.service -n 50 --no-pager
     badgeColor: "blue",
     tags: ["大前端与全栈", "AI SDK基石", "类型安全", "零运行时开销"],
     capstoneChallenge: "为企业级多模型 AI Agent 网关设计一套零运行时错误、具备严格类型守卫与结构化输出推导的 TypeScript 架构",
+    enterpriseProject: TRACK_ENTERPRISE_PROJECTS["track-typescript"],
     lessons: [
       {
         id: "ts-101",

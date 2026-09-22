@@ -17,7 +17,8 @@ import {
   ArrowRight,
   Flame,
   Terminal,
-  Code2
+  Code2,
+  Award
 } from "lucide-react";
 import { TrackInfo, LearningTrackId, UserProgress, DailyChallenge } from "../types";
 import { DailyChallengeCard } from "./DailyChallengeCard";
@@ -32,6 +33,7 @@ interface TrackSelectorProps {
   onJumpToVibeCoding: () => void;
   todayChallenge: DailyChallenge;
   onOpenDailyChallenge: () => void;
+  onOpenEnterpriseProject?: (track: TrackInfo) => void;
 }
 
 const ICON_MAP: Record<string, any> = {
@@ -59,6 +61,7 @@ export const TrackSelector: React.FC<TrackSelectorProps> = ({
   onJumpToVibeCoding,
   todayChallenge,
   onOpenDailyChallenge,
+  onOpenEnterpriseProject,
 }) => {
   const [filter, setFilter] = useState<"all" | "zero" | "foundation" | "framework" | "agent">("all");
 
@@ -260,6 +263,40 @@ export const TrackSelector: React.FC<TrackSelectorProps> = ({
                     </span>
                   ))}
                 </div>
+
+                {/* 🎯 Enterprise Project Capstone Banner */}
+                {track.enterpriseProject && (
+                  <div 
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onOpenEnterpriseProject?.(track);
+                    }}
+                    className="mt-2 rounded-lg bg-indigo-950/40 hover:bg-indigo-900/50 border border-indigo-500/30 p-2.5 flex items-center justify-between text-xs transition-all group/ep cursor-pointer hover:border-indigo-400/50"
+                  >
+                    <div className="flex items-center gap-2 overflow-hidden mr-2">
+                      <div className="p-1 rounded bg-indigo-500/20 text-indigo-400 shrink-0">
+                        <Award className="h-3.5 w-3.5" />
+                      </div>
+                      <div className="overflow-hidden">
+                        <div className="text-[10px] text-indigo-300 font-semibold uppercase tracking-wider flex items-center gap-1">
+                          <span>终极目标验收</span>
+                          {progress.completedTrackProjectIds?.includes(track.id) && (
+                            <span className="text-[9px] px-1 rounded bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
+                              已达标
+                            </span>
+                          )}
+                        </div>
+                        <div className="text-white font-medium text-[11px] truncate">
+                          {track.enterpriseProject.projectName}
+                        </div>
+                      </div>
+                    </div>
+                    <span className="text-[10px] font-semibold text-indigo-300 flex items-center gap-0.5 group-hover/ep:translate-x-0.5 transition-transform shrink-0 whitespace-nowrap">
+                      验收落地
+                      <ChevronRight className="h-3 w-3" />
+                    </span>
+                  </div>
+                )}
               </div>
 
               {/* Progress Bar & Actions */}

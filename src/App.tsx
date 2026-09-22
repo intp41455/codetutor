@@ -12,10 +12,12 @@ import { VibeCodingControlRoom } from "./components/VibeCodingControlRoom";
 import { CodeAuditAndTestCenter } from "./components/CodeAuditAndTestCenter";
 import { GraduationCapstoneModal } from "./components/GraduationCapstoneModal";
 import { DailyChallengeModal } from "./components/DailyChallengeModal";
+import { TrackEnterpriseProjectModal } from "./components/TrackEnterpriseProjectModal";
 import { AITutorDrawer } from "./components/AITutorDrawer";
 import { TRACKS_DATA } from "./data/coursesData";
 import { getTodayChallenge } from "./data/dailyChallengesData";
-import { NavTab, LearningTrackId, UserProgress } from "./types";
+import { NavTab, LearningTrackId, UserProgress, TrackInfo } from "./types";
+import { Award } from "lucide-react";
 
 const INITIAL_PROGRESS: UserProgress = {
   completedLessonIds: [],
@@ -51,6 +53,7 @@ export default function App() {
   const [showAITutor, setShowAITutor] = useState<boolean>(false);
   const [showCapstoneModal, setShowCapstoneModal] = useState<boolean>(false);
   const [showDailyChallengeModal, setShowDailyChallengeModal] = useState<boolean>(false);
+  const [selectedEnterpriseTrack, setSelectedEnterpriseTrack] = useState<TrackInfo | null>(null);
 
   const todayChallenge = getTodayChallenge();
 
@@ -157,6 +160,22 @@ export default function App() {
     });
   };
 
+  // Pass Enterprise Track Capstone Project
+  const handleEnterpriseProjectPassed = (trackId: string) => {
+    setProgress((prev) => {
+      const alreadyPassed = prev.completedTrackProjectIds?.includes(trackId);
+      if (alreadyPassed) return prev;
+      const t = TRACKS_DATA.find((x) => x.id === trackId);
+      const badgeTitle = t ? `${t.title.slice(0, 10)} 落地架构师` : "企业系统落地官";
+      return {
+        ...prev,
+        completedTrackProjectIds: [...(prev.completedTrackProjectIds || []), trackId],
+        xp: prev.xp + 500,
+        unlockedBadges: Array.from(new Set([...prev.unlockedBadges, badgeTitle])),
+      };
+    });
+  };
+
   return (
     <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col font-['Plus_Jakarta_Sans',sans-serif]">
       {/* Global Header */}
@@ -201,6 +220,7 @@ export default function App() {
                   onJumpToVibeCoding={() => setActiveTab("vibe-coding")}
                   todayChallenge={todayChallenge}
                   onOpenDailyChallenge={() => setShowDailyChallengeModal(true)}
+                  onOpenEnterpriseProject={(t) => setSelectedEnterpriseTrack(t)}
                 />
               </div>
             ) : (
@@ -217,6 +237,16 @@ export default function App() {
                     <span className="text-slate-500 font-mono hidden sm:inline">
                       当前赛道：{currentTrack.title}
                     </span>
+                    {currentTrack.enterpriseProject && (
+                      <button
+                        onClick={() => setSelectedEnterpriseTrack(currentTrack)}
+                        className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-indigo-500/20 hover:bg-indigo-500/30 border border-indigo-500/40 text-xs font-semibold text-indigo-300 transition-colors"
+                      >
+                        <Award className="h-3.5 w-3.5 text-indigo-400" />
+                        <span className="hidden sm:inline">终极目标验收：</span>
+                        <span>{currentTrack.enterpriseProject.projectName}</span>
+                      </button>
+                    )}
                   </div>
                 </div>
 
@@ -232,6 +262,7 @@ export default function App() {
                   onAskAIAboutCode={(code, lang, q) => {
                     setShowAITutor(true);
                   }}
+                  onOpenEnterpriseProject={() => setSelectedEnterpriseTrack(currentTrack)}
                 />
               </div>
             )}
@@ -279,6 +310,19 @@ export default function App() {
         onGraduationPass={handleGraduationPass}
         isGraduated={progress.capstonePassed}
       />
+
+      {/* Track Enterprise Project Modal */}
+      {selectedEnterpriseTrack && (
+        <TrackEnterpriseProjectModal
+          track={selectedEnterpriseTrack}
+          isOpen={Boolean(selectedEnterpriseTrack)}
+          onClose={() => setSelectedEnterpriseTrack(null)}
+          onAcceptancePassed={handleEnterpriseProjectPassed}
+          isAlreadyPassed={Boolean(
+            progress.completedTrackProjectIds?.includes(selectedEnterpriseTrack.id)
+          )}
+        />
+      )}
 
       {/* Slide-over AI Tutor Drawer */}
       <AITutorDrawer

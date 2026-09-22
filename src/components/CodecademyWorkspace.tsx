@@ -15,10 +15,18 @@ import {
   AlertCircle,
   Eye,
   Activity,
-  Bot
+  Bot,
+  Award,
+  Bug
 } from "lucide-react";
 import { Lesson, TrackInfo } from "../types";
 import { generateIntelligentExplanation } from "../utils/aiFallbackEngine";
+import { InteractiveComputerAnatomy } from "./InteractiveComputerAnatomy";
+import { InteractiveVariablePlayground } from "./InteractiveVariablePlayground";
+import { InteractiveCodeExecutionLab } from "./InteractiveCodeExecutionLab";
+import { InteractiveComputerAndCompilerLab } from "./InteractiveComputerAndCompilerLab";
+import { VisualCodeDebugger } from "./VisualCodeDebugger";
+import { generateCodeExecutionTrace, TraceStep } from "../utils/codeTraceEngine";
 
 interface CodecademyWorkspaceProps {
   lesson: Lesson;
@@ -30,6 +38,7 @@ interface CodecademyWorkspaceProps {
   onLessonComplete: (lessonId: string) => void;
   isCompleted: boolean;
   onAskAIAboutCode: (code: string, language: string, question?: string) => void;
+  onOpenEnterpriseProject?: () => void;
 }
 
 export const CodecademyWorkspace: React.FC<CodecademyWorkspaceProps> = ({
@@ -42,10 +51,11 @@ export const CodecademyWorkspace: React.FC<CodecademyWorkspaceProps> = ({
   onLessonComplete,
   isCompleted,
   onAskAIAboutCode,
+  onOpenEnterpriseProject,
 }) => {
   const [code, setCode] = useState<string>(lesson.starterCode);
   const [output, setOutput] = useState<string>("");
-  const [activeRightTab, setActiveRightTab] = useState<"terminal" | "trace" | "ai-explain">("terminal");
+  const [activeRightTab, setActiveRightTab] = useState<"terminal" | "debugger" | "trace" | "ai-explain">("debugger");
   const [isRunning, setIsRunning] = useState<boolean>(false);
   const [executionTime, setExecutionTime] = useState<number | null>(null);
   const [checkpointStatus, setCheckpointStatus] = useState<Record<string, { passed: boolean; message: string }>>({});
@@ -55,6 +65,10 @@ export const CodecademyWorkspace: React.FC<CodecademyWorkspaceProps> = ({
   const [aiExplanation, setAiExplanation] = useState<string>("");
   const [isExplaining, setIsExplaining] = useState<boolean>(false);
 
+  // Visual Debugger state
+  const [traceSteps, setTraceSteps] = useState<TraceStep[]>(() => generateCodeExecutionTrace(lesson.starterCode, lesson.language));
+  const [currentStepIndex, setCurrentStepIndex] = useState<number>(0);
+
   // Sync state when lesson changes
   useEffect(() => {
     setCode(lesson.starterCode);
@@ -63,13 +77,31 @@ export const CodecademyWorkspace: React.FC<CodecademyWorkspaceProps> = ({
     setShowHint(false);
     setShowSolution(false);
     setAiExplanation("");
-    setActiveRightTab("terminal");
+    const steps = generateCodeExecutionTrace(lesson.starterCode, lesson.language);
+    setTraceSteps(steps);
+    setCurrentStepIndex(0);
+    setActiveRightTab("debugger");
   }, [lesson.id]);
+
+  // Recalculate trace steps whenever code is updated
+  const handleCodeChange = (newCode: string) => {
+    setCode(newCode);
+    const steps = generateCodeExecutionTrace(newCode, lesson.language);
+    setTraceSteps(steps);
+    if (currentStepIndex >= steps.length) {
+      setCurrentStepIndex(Math.max(0, steps.length - 1));
+    }
+  };
 
   // Run code safely
   const handleRunCode = async () => {
     setIsRunning(true);
     try {
+      // Re-generate trace steps on run
+      const steps = generateCodeExecutionTrace(code, lesson.language);
+      setTraceSteps(steps);
+      setCurrentStepIndex(steps.length > 0 ? steps.length - 1 : 0);
+
       const response = await fetch("/api/run-code", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -81,7 +113,6 @@ export const CodecademyWorkspace: React.FC<CodecademyWorkspaceProps> = ({
       const data = await response.json();
       setOutput(data.output || "执行完成");
       setExecutionTime(data.executionTimeMs || 15);
-      setActiveRightTab("terminal");
 
       // Auto evaluate checkpoints
       evaluateCheckpoints(code, data.output);
@@ -152,6 +183,9 @@ export const CodecademyWorkspace: React.FC<CodecademyWorkspaceProps> = ({
       setCode(lesson.starterCode);
       setCheckpointStatus({});
       setOutput("");
+      const steps = generateCodeExecutionTrace(lesson.starterCode, lesson.language);
+      setTraceSteps(steps);
+      setCurrentStepIndex(0);
     }
   };
 
@@ -164,32 +198,46 @@ export const CodecademyWorkspace: React.FC<CodecademyWorkspaceProps> = ({
       {/* LEFT PANE: Guided Tutorial, Mental Model & Tasks */}
       <div className="w-full lg:w-[38%] border-b lg:border-b-0 lg:border-r border-slate-800 bg-slate-900/30 flex flex-col h-full overflow-y-auto">
         {/* Navigation Breadcrumb */}
-        <div className="flex items-center justify-between border-b border-slate-800/80 px-4 py-3 bg-slate-950/60 sticky top-0 z-10 backdrop-blur">
-          <div className="flex items-center gap-2 text-xs">
-            <span className="font-semibold text-indigo-400">{track.title}</span>
-            <span className="text-slate-600">/</span>
-            <span className="text-slate-300 font-medium truncate max-w-[180px]">
+        <div className="flex items-center justify-between border-b border-slate-800/80 px-4 py-2.5 bg-slate-950/60 sticky top-0 z-10 backdrop-blur">
+          <div className="flex items-center gap-2 text-xs overflow-hidden mr-2">
+            <span className="font-semibold text-indigo-400 shrink-0">{track.title.slice(0, 10)}...</span>
+            <span className="text-slate-600 shrink-0">/</span>
+            <span className="text-slate-300 font-medium truncate max-w-[120px] sm:max-w-[160px]">
               {lesson.title}
             </span>
           </div>
 
-          <div className="flex items-center gap-1">
-            <button
-              onClick={onPrevLesson}
-              disabled={!hasPrevLesson}
-              className="p-1 rounded text-slate-400 hover:text-white disabled:opacity-30 disabled:pointer-events-none"
-              title="上一关"
-            >
-              <ChevronLeft className="h-4 w-4" />
-            </button>
-            <button
-              onClick={onNextLesson}
-              disabled={!hasNextLesson}
-              className="p-1 rounded text-slate-400 hover:text-white disabled:opacity-30 disabled:pointer-events-none"
-              title="下一关"
-            >
-              <ChevronRight className="h-4 w-4" />
-            </button>
+          <div className="flex items-center gap-2 shrink-0">
+            {track.enterpriseProject && onOpenEnterpriseProject && (
+              <button
+                onClick={onOpenEnterpriseProject}
+                className="flex items-center gap-1 px-2 py-1 rounded-md bg-indigo-500/10 hover:bg-indigo-500/20 border border-indigo-500/30 text-[11px] font-semibold text-indigo-300 transition-colors"
+                title="查看本课程终极目标验收与落地项目"
+              >
+                <Award className="h-3 w-3 text-indigo-400" />
+                <span className="hidden sm:inline">终极目标验收</span>
+                <span className="sm:hidden">目标</span>
+              </button>
+            )}
+
+            <div className="flex items-center gap-1 border-l border-slate-800 pl-2">
+              <button
+                onClick={onPrevLesson}
+                disabled={!hasPrevLesson}
+                className="p-1 rounded text-slate-400 hover:text-white disabled:opacity-30 disabled:pointer-events-none"
+                title="上一关"
+              >
+                <ChevronLeft className="h-4 w-4" />
+              </button>
+              <button
+                onClick={onNextLesson}
+                disabled={!hasNextLesson}
+                className="p-1 rounded text-slate-400 hover:text-white disabled:opacity-30 disabled:pointer-events-none"
+                title="下一关"
+              >
+                <ChevronRight className="h-4 w-4" />
+              </button>
+            </div>
           </div>
         </div>
 
@@ -231,6 +279,27 @@ export const CodecademyWorkspace: React.FC<CodecademyWorkspaceProps> = ({
               {lesson.mentalModel.keyIntuition}
             </div>
           </div>
+
+          {/* 🌟 Zero-Knowledge Starter: Interactive Visual Tools for Total Beginners */}
+          {lesson.id === "zero-001" && (
+            <div className="pt-1 space-y-3">
+              <InteractiveComputerAndCompilerLab />
+              <InteractiveComputerAnatomy currentLessonId={lesson.id} />
+            </div>
+          )}
+
+          {lesson.id === "zero-002" && (
+            <div className="pt-1 space-y-3">
+              <InteractiveComputerAndCompilerLab />
+              <InteractiveCodeExecutionLab />
+            </div>
+          )}
+
+          {(lesson.id === "zero-003" || lesson.id === "zero-004") && (
+            <div className="pt-1">
+              <InteractiveVariablePlayground />
+            </div>
+          )}
 
           {/* Markdown Explanations */}
           <div className="text-xs sm:text-sm text-slate-300 leading-relaxed space-y-3 prose prose-invert max-w-none">
@@ -406,6 +475,22 @@ export const CodecademyWorkspace: React.FC<CodecademyWorkspaceProps> = ({
               <span>重置</span>
             </button>
 
+            {/* Step-by-step debug button */}
+            <button
+              id="debug-code-button"
+              onClick={() => {
+                const steps = generateCodeExecutionTrace(code, lesson.language);
+                setTraceSteps(steps);
+                setCurrentStepIndex(0);
+                setActiveRightTab("debugger");
+              }}
+              className="flex items-center gap-1.5 rounded-lg bg-indigo-700/80 hover:bg-indigo-600 px-3 py-1.5 text-xs font-semibold text-white shadow-md shadow-indigo-950 transition-all active:scale-95"
+              title="逐行单步断点演练，观察变量内存变化"
+            >
+              <Bug className="h-3.5 w-3.5 text-amber-300" />
+              <span>单步可视化调试</span>
+            </button>
+
             {/* Run Button */}
             <button
               id="run-code-button"
@@ -455,7 +540,7 @@ export const CodecademyWorkspace: React.FC<CodecademyWorkspaceProps> = ({
             <textarea
               id="code-editor-textarea"
               value={code}
-              onChange={(e) => setCode(e.target.value)}
+              onChange={(e) => handleCodeChange(e.target.value)}
               onKeyDown={(e) => {
                 if ((e.ctrlKey || e.metaKey) && e.key === "Enter") {
                   handleRunCode();
@@ -468,11 +553,26 @@ export const CodecademyWorkspace: React.FC<CodecademyWorkspaceProps> = ({
           </div>
         </div>
 
-        {/* BOTTOM OUTPUT PANE */}
-        <div className="h-[38%] border-t border-slate-800 bg-slate-900/90 flex flex-col">
+        {/* BOTTOM OUTPUT PANE / VISUAL DEBUGGER */}
+        <div className="h-[44%] border-t border-slate-800 bg-slate-900/90 flex flex-col">
           {/* Tab selector */}
           <div className="flex items-center justify-between border-b border-slate-800 px-4 py-1.5 bg-slate-950/40">
             <div className="flex items-center gap-1">
+              <button
+                onClick={() => setActiveRightTab("debugger")}
+                className={`flex items-center gap-1.5 rounded-md px-2.5 py-1 text-xs font-medium transition-all ${
+                  activeRightTab === "debugger"
+                    ? "bg-indigo-600 text-white shadow-sm font-semibold"
+                    : "text-slate-400 hover:text-slate-200"
+                }`}
+              >
+                <Bug className="h-3.5 w-3.5 text-amber-300" />
+                <span>可视化物理调试器</span>
+                <span className="text-[9px] px-1.5 py-0.2 rounded bg-indigo-900/80 text-indigo-200 font-mono">
+                  {traceSteps.length}步
+                </span>
+              </button>
+
               <button
                 onClick={() => setActiveRightTab("terminal")}
                 className={`flex items-center gap-1.5 rounded-md px-2.5 py-1 text-xs font-medium transition-all ${
@@ -497,7 +597,7 @@ export const CodecademyWorkspace: React.FC<CodecademyWorkspaceProps> = ({
                 }`}
               >
                 <Activity className="h-3.5 w-3.5 text-indigo-400" />
-                <span>执行状态追踪器</span>
+                <span>微架构快照</span>
               </button>
 
               <button
@@ -524,9 +624,19 @@ export const CodecademyWorkspace: React.FC<CodecademyWorkspaceProps> = ({
           </div>
 
           {/* Tab Content */}
-          <div className="flex-1 p-3 font-mono text-xs overflow-y-auto">
+          <div className="flex-1 overflow-hidden">
+            {activeRightTab === "debugger" && (
+              <VisualCodeDebugger
+                steps={traceSteps}
+                currentStepIndex={currentStepIndex}
+                onStepChange={setCurrentStepIndex}
+                onReset={() => setCurrentStepIndex(0)}
+                fullCode={code}
+              />
+            )}
+
             {activeRightTab === "terminal" && (
-              <div className="h-full flex flex-col justify-between">
+              <div className="h-full flex flex-col justify-between p-3 font-mono text-xs overflow-y-auto">
                 <pre className="text-emerald-400/90 whitespace-pre-wrap leading-5">
                   {output || (
                     <span className="text-slate-500 italic font-sans">
@@ -543,7 +653,7 @@ export const CodecademyWorkspace: React.FC<CodecademyWorkspaceProps> = ({
             )}
 
             {activeRightTab === "trace" && (
-              <div className="space-y-3 font-sans">
+              <div className="p-3 font-sans space-y-3 overflow-y-auto h-full">
                 <div className="text-xs text-slate-400 font-semibold flex items-center gap-1.5">
                   <Activity className="h-3.5 w-3.5 text-indigo-400" />
                   <span>内存与控制流单步快照 (Execution Trace)</span>
@@ -572,7 +682,7 @@ export const CodecademyWorkspace: React.FC<CodecademyWorkspaceProps> = ({
             )}
 
             {activeRightTab === "ai-explain" && (
-              <div className="space-y-3 font-sans text-xs text-slate-300">
+              <div className="p-3 font-sans text-xs text-slate-300 space-y-3 overflow-y-auto h-full">
                 {isExplaining ? (
                   <div className="flex items-center gap-2 text-indigo-400 p-4">
                     <Bot className="h-5 w-5 animate-spin" />
