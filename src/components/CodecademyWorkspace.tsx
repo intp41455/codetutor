@@ -433,10 +433,10 @@ export const CodecademyWorkspace: React.FC<CodecademyWorkspaceProps> = ({
       {/* MIDDLE & RIGHT PANES: Editor + Output */}
       <div className="flex-1 flex flex-col h-full overflow-hidden">
         {/* Editor Toolbar */}
-        <div className="flex items-center justify-between border-b border-slate-800 px-4 py-2 bg-slate-900/60">
-          <div className="flex items-center gap-2">
-            <span className="flex items-center gap-1.5 rounded bg-slate-800 px-2.5 py-1 text-xs font-mono font-medium text-slate-200 border border-slate-700">
-              <TerminalIcon className="h-3.5 w-3.5 text-indigo-400" />
+        <div className="flex items-center justify-between border-b border-slate-800 px-3 sm:px-4 py-1.5 sm:py-2 bg-slate-900/60 gap-2 overflow-x-auto scrollbar-none shrink-0">
+          <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
+            <span className="flex items-center gap-1.5 rounded bg-slate-800 px-2.5 py-1 text-xs font-mono font-medium text-slate-200 border border-slate-700 shrink-0 whitespace-nowrap">
+              <TerminalIcon className="h-3.5 w-3.5 text-indigo-400 shrink-0" />
               <span>
                 {lesson.language === "bash" || lesson.language === "shell" 
                   ? "terminal.sh" 
@@ -445,35 +445,37 @@ export const CodecademyWorkspace: React.FC<CodecademyWorkspaceProps> = ({
                   : `main.${lesson.language === "python" ? "py" : lesson.language === "java" ? "java" : "sql"}`}
               </span>
             </span>
-            <span className="text-[11px] font-mono text-slate-400 uppercase">
+            <span className="text-[11px] font-mono text-slate-400 uppercase hidden md:inline shrink-0">
               {lesson.language}
             </span>
           </div>
 
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
             <button
               onClick={() => setShowSolution(!showSolution)}
-              className="text-xs text-slate-400 hover:text-slate-200 px-2 py-1 rounded hover:bg-slate-800 flex items-center gap-1"
+              className="text-xs text-slate-400 hover:text-slate-200 px-2 py-1 rounded hover:bg-slate-800 flex items-center gap-1 shrink-0 whitespace-nowrap border border-transparent hover:border-slate-700 transition-colors"
+              title="查看官方参考答案"
             >
-              <Eye className="h-3.5 w-3.5" />
-              <span>{showSolution ? "隐藏答案" : "参考答案"}</span>
+              <Eye className="h-3.5 w-3.5 shrink-0" />
+              <span className="hidden sm:inline">{showSolution ? "隐藏答案" : "参考答案"}</span>
             </button>
 
             <button
               onClick={handleCopyCode}
-              className="text-xs text-slate-400 hover:text-slate-200 px-2 py-1 rounded hover:bg-slate-800 flex items-center gap-1"
+              className="text-xs text-slate-400 hover:text-slate-200 px-2 py-1 rounded hover:bg-slate-800 flex items-center gap-1 shrink-0 whitespace-nowrap border border-transparent hover:border-slate-700 transition-colors"
+              title="复制代码"
             >
-              {copied ? <Check className="h-3.5 w-3.5 text-emerald-400" /> : <Copy className="h-3.5 w-3.5" />}
-              <span>{copied ? "已复制" : "复制"}</span>
+              {copied ? <Check className="h-3.5 w-3.5 text-emerald-400 shrink-0" /> : <Copy className="h-3.5 w-3.5 shrink-0" />}
+              <span className="hidden sm:inline">{copied ? "已复制" : "复制"}</span>
             </button>
 
             <button
               onClick={handleResetCode}
-              className="text-xs text-slate-400 hover:text-slate-200 px-2 py-1 rounded hover:bg-slate-800 flex items-center gap-1"
+              className="text-xs text-slate-400 hover:text-slate-200 px-2 py-1 rounded hover:bg-slate-800 flex items-center gap-1 shrink-0 whitespace-nowrap border border-transparent hover:border-slate-700 transition-colors"
               title="重置初始代码"
             >
-              <RotateCcw className="h-3.5 w-3.5" />
-              <span>重置</span>
+              <RotateCcw className="h-3.5 w-3.5 shrink-0" />
+              <span className="hidden sm:inline">重置</span>
             </button>
 
             {/* Step-by-step debug button */}
@@ -485,11 +487,11 @@ export const CodecademyWorkspace: React.FC<CodecademyWorkspaceProps> = ({
                 setCurrentStepIndex(0);
                 setActiveRightTab("debugger");
               }}
-              className="flex items-center gap-1.5 rounded-lg bg-indigo-700/80 hover:bg-indigo-600 px-3 py-1.5 text-xs font-semibold text-white shadow-md shadow-indigo-950 transition-all active:scale-95"
+              className="flex items-center gap-1.5 rounded-lg bg-indigo-700/80 hover:bg-indigo-600 px-2.5 sm:px-3 py-1.5 text-xs font-semibold text-white shadow-md shadow-indigo-950 transition-all active:scale-95 shrink-0 whitespace-nowrap"
               title="逐行单步断点演练，观察变量内存变化"
             >
-              <Bug className="h-3.5 w-3.5 text-amber-300" />
-              <span>单步可视化调试</span>
+              <Bug className="h-3.5 w-3.5 text-amber-300 shrink-0" />
+              <span>单步调试</span>
             </button>
 
             {/* Run Button */}
@@ -497,10 +499,10 @@ export const CodecademyWorkspace: React.FC<CodecademyWorkspaceProps> = ({
               id="run-code-button"
               onClick={handleRunCode}
               disabled={isRunning}
-              className="flex items-center gap-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 px-3.5 py-1.5 text-xs font-semibold text-white shadow-md shadow-emerald-950 transition-all active:scale-95"
+              className="flex items-center gap-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 px-3 sm:px-3.5 py-1.5 text-xs font-semibold text-white shadow-md shadow-emerald-950 transition-all active:scale-95 shrink-0 whitespace-nowrap"
             >
-              <Play className={`h-3.5 w-3.5 fill-current ${isRunning ? "animate-spin" : ""}`} />
-              <span>{isRunning ? "执行中..." : "运行代码 (Run)"}</span>
+              <Play className={`h-3.5 w-3.5 fill-current shrink-0 ${isRunning ? "animate-spin" : ""}`} />
+              <span>{isRunning ? "执行中..." : "运行代码"}</span>
             </button>
           </div>
         </div>
@@ -555,53 +557,53 @@ export const CodecademyWorkspace: React.FC<CodecademyWorkspaceProps> = ({
         </div>
 
         {/* BOTTOM OUTPUT PANE / VISUAL DEBUGGER */}
-        <div className="h-[44%] border-t border-slate-800 bg-slate-900/90 flex flex-col">
+        <div className="h-[44%] border-t border-slate-800 bg-slate-900/90 flex flex-col min-h-[200px]">
           {/* Tab selector */}
-          <div className="flex items-center justify-between border-b border-slate-800 px-4 py-1.5 bg-slate-950/40">
-            <div className="flex items-center gap-1">
+          <div className="flex items-center justify-between border-b border-slate-800 px-3 sm:px-4 py-1.5 bg-slate-950/40 gap-2 overflow-x-auto scrollbar-none shrink-0">
+            <div className="flex items-center gap-1 sm:gap-1.5 shrink-0">
               <button
                 onClick={() => setActiveRightTab("debugger")}
-                className={`flex items-center gap-1.5 rounded-md px-2.5 py-1 text-xs font-medium transition-all ${
+                className={`flex items-center gap-1.5 rounded-md px-2.5 py-1 text-xs font-medium transition-all shrink-0 whitespace-nowrap ${
                   activeRightTab === "debugger"
                     ? "bg-indigo-600 text-white shadow-sm font-semibold"
                     : "text-slate-400 hover:text-slate-200"
                 }`}
               >
-                <Bug className="h-3.5 w-3.5 text-amber-300" />
-                <span>可视化物理调试器</span>
-                <span className="text-[9px] px-1.5 py-0.2 rounded bg-indigo-900/80 text-indigo-200 font-mono">
+                <Bug className="h-3.5 w-3.5 text-amber-300 shrink-0" />
+                <span>物理单步调试器</span>
+                <span className="text-[9px] px-1.5 py-0.2 rounded bg-indigo-900/80 text-indigo-200 font-mono shrink-0">
                   {traceSteps.length}步
                 </span>
-                <span className="hidden sm:inline-flex items-center gap-0.5 text-[9px] px-1 py-0.2 rounded bg-rose-500/20 text-rose-300 font-sans border border-rose-500/30">
-                  <Flame className="h-2.5 w-2.5 text-rose-400" />
+                <span className="hidden sm:inline-flex items-center gap-0.5 text-[9px] px-1 py-0.2 rounded bg-rose-500/20 text-rose-300 font-sans border border-rose-500/30 shrink-0">
+                  <Flame className="h-2.5 w-2.5 text-rose-400 shrink-0" />
                   分支热力图
                 </span>
               </button>
 
               <button
                 onClick={() => setActiveRightTab("terminal")}
-                className={`flex items-center gap-1.5 rounded-md px-2.5 py-1 text-xs font-medium transition-all ${
+                className={`flex items-center gap-1.5 rounded-md px-2.5 py-1 text-xs font-medium transition-all shrink-0 whitespace-nowrap ${
                   activeRightTab === "terminal"
-                    ? "bg-slate-800 text-white shadow-sm"
+                    ? "bg-slate-800 text-white shadow-sm font-semibold"
                     : "text-slate-400 hover:text-slate-200"
                 }`}
               >
-                <TerminalIcon className="h-3.5 w-3.5 text-emerald-400" />
+                <TerminalIcon className="h-3.5 w-3.5 text-emerald-400 shrink-0" />
                 <span>控制台输出</span>
                 {executionTime !== null && (
-                  <span className="text-[10px] text-slate-500 font-mono">({executionTime}ms)</span>
+                  <span className="text-[10px] text-slate-500 font-mono shrink-0">({executionTime}ms)</span>
                 )}
               </button>
 
               <button
                 onClick={() => setActiveRightTab("trace")}
-                className={`flex items-center gap-1.5 rounded-md px-2.5 py-1 text-xs font-medium transition-all ${
+                className={`flex items-center gap-1.5 rounded-md px-2.5 py-1 text-xs font-medium transition-all shrink-0 whitespace-nowrap ${
                   activeRightTab === "trace"
-                    ? "bg-slate-800 text-white shadow-sm"
+                    ? "bg-slate-800 text-white shadow-sm font-semibold"
                     : "text-slate-400 hover:text-slate-200"
                 }`}
               >
-                <Activity className="h-3.5 w-3.5 text-indigo-400" />
+                <Activity className="h-3.5 w-3.5 text-indigo-400 shrink-0" />
                 <span>微架构快照</span>
               </button>
 
@@ -612,18 +614,18 @@ export const CodecademyWorkspace: React.FC<CodecademyWorkspaceProps> = ({
                     handleRequestAIExplain();
                   }
                 }}
-                className={`flex items-center gap-1.5 rounded-md px-2.5 py-1 text-xs font-medium transition-all ${
+                className={`flex items-center gap-1.5 rounded-md px-2.5 py-1 text-xs font-medium transition-all shrink-0 whitespace-nowrap ${
                   activeRightTab === "ai-explain"
-                    ? "bg-slate-800 text-white shadow-sm"
+                    ? "bg-slate-800 text-white shadow-sm font-semibold"
                     : "text-slate-400 hover:text-slate-200"
                 }`}
               >
-                <Bot className="h-3.5 w-3.5 text-purple-400" />
-                <span>AI 导师伴读拆解</span>
+                <Bot className="h-3.5 w-3.5 text-purple-400 shrink-0" />
+                <span>AI 导师伴读</span>
               </button>
             </div>
 
-            <div className="text-[11px] text-slate-500 hidden sm:block font-mono">
+            <div className="text-[11px] text-slate-500 hidden sm:block font-mono shrink-0 whitespace-nowrap">
               快捷键: Ctrl/Cmd + Enter 运行
             </div>
           </div>

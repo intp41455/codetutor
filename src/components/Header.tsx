@@ -56,32 +56,33 @@ export const Header: React.FC<HeaderProps> = ({
         </div>
 
         {/* Navigation Tabs */}
-        <nav className="flex items-center gap-1 sm:gap-2">
+        <nav className="flex items-center gap-1 sm:gap-2 overflow-x-auto scrollbar-none py-1 max-w-[55vw] sm:max-w-none">
           <button
             id="nav-tab-curriculum"
             onClick={() => setActiveTab("curriculum")}
-            className={`flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium transition-all ${
+            className={`flex items-center gap-1.5 sm:gap-2 rounded-lg px-2.5 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm font-medium transition-all shrink-0 ${
               activeTab === "curriculum"
                 ? "bg-slate-800 text-white shadow-sm border border-slate-700"
                 : "text-slate-400 hover:bg-slate-900 hover:text-slate-200"
             }`}
           >
-            <BookOpen className="h-4 w-4 text-indigo-400" />
-            <span>12大体系课程</span>
+            <BookOpen className="h-4 w-4 text-indigo-400 shrink-0" />
+            <span className="whitespace-nowrap">12大体系课程</span>
           </button>
 
           <button
             id="nav-tab-github-lab"
             onClick={() => setActiveTab("github-lab")}
-            className={`flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium transition-all ${
+            className={`flex items-center gap-1.5 sm:gap-2 rounded-lg px-2.5 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm font-medium transition-all shrink-0 ${
               activeTab === "github-lab"
                 ? "bg-slate-800 text-white shadow-sm border border-slate-700"
                 : "text-slate-400 hover:bg-slate-900 hover:text-slate-200"
             }`}
           >
-            <GitBranch className="h-4 w-4 text-emerald-400" />
-            <span className="flex items-center gap-1.5">
-              <span>GitHub 陌生项目拆解舱</span>
+            <GitBranch className="h-4 w-4 text-emerald-400 shrink-0" />
+            <span className="flex items-center gap-1.5 whitespace-nowrap">
+              <span className="hidden xl:inline">GitHub 陌生项目拆解舱</span>
+              <span className="xl:hidden">GitHub拆解</span>
               <span className="hidden md:inline-block rounded bg-emerald-500/20 px-1.5 py-0.2 text-[10px] text-emerald-300 font-mono">
                 5步法
               </span>
@@ -91,15 +92,16 @@ export const Header: React.FC<HeaderProps> = ({
           <button
             id="nav-tab-vibe-coding"
             onClick={() => setActiveTab("vibe-coding")}
-            className={`flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium transition-all ${
+            className={`flex items-center gap-1.5 sm:gap-2 rounded-lg px-2.5 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm font-medium transition-all shrink-0 ${
               activeTab === "vibe-coding"
                 ? "bg-slate-800 text-white shadow-sm border border-slate-700"
                 : "text-slate-400 hover:bg-slate-900 hover:text-slate-200"
             }`}
           >
-            <ShieldAlert className="h-4 w-4 text-amber-400" />
-            <span className="flex items-center gap-1.5">
-              <span>Vibe Coding 掌控力</span>
+            <ShieldAlert className="h-4 w-4 text-amber-400 shrink-0" />
+            <span className="flex items-center gap-1.5 whitespace-nowrap">
+              <span className="hidden xl:inline">Vibe Coding 掌控力</span>
+              <span className="xl:hidden">Vibe掌控</span>
               <span className="hidden md:inline-block rounded bg-amber-500/20 px-1.5 py-0.2 text-[10px] text-amber-300 font-mono">
                 代码审查
               </span>
@@ -109,16 +111,17 @@ export const Header: React.FC<HeaderProps> = ({
           <button
             id="nav-tab-code-audit"
             onClick={() => setActiveTab("code-audit")}
-            className={`flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium transition-all ${
+            className={`flex items-center gap-1.5 sm:gap-2 rounded-lg px-2.5 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm font-medium transition-all shrink-0 ${
               activeTab === "code-audit"
                 ? "bg-slate-800 text-white shadow-sm border border-slate-700"
                 : "text-slate-400 hover:bg-slate-900 hover:text-slate-200"
             }`}
           >
-            <ShieldCheck className="h-4 w-4 text-teal-400" />
-            <span className="flex items-center gap-1.5">
-              <span>代码审核与质检</span>
-              <span className="hidden xl:inline-block rounded bg-teal-500/20 px-1.5 py-0.2 text-[10px] text-teal-300 font-mono">
+            <ShieldCheck className="h-4 w-4 text-teal-400 shrink-0" />
+            <span className="flex items-center gap-1.5 whitespace-nowrap">
+              <span className="hidden xl:inline">代码审核与质检</span>
+              <span className="xl:hidden">代码质检</span>
+              <span className="hidden 2xl:inline-block rounded bg-teal-500/20 px-1.5 py-0.2 text-[10px] text-teal-300 font-mono">
                 自动化测试
               </span>
             </span>
@@ -127,11 +130,11 @@ export const Header: React.FC<HeaderProps> = ({
           <button
             id="nav-tab-capstone"
             onClick={onOpenCapstone}
-            className="flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium text-purple-300 hover:bg-purple-950/40 hover:text-purple-200 border border-purple-500/30 transition-all"
+            className="flex items-center gap-1.5 sm:gap-2 rounded-lg px-2.5 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm font-medium text-purple-300 hover:bg-purple-950/40 hover:text-purple-200 border border-purple-500/30 transition-all shrink-0"
           >
-            <Award className="h-4 w-4 text-purple-400" />
-            <span className="hidden sm:inline">毕业综合考核</span>
-            <span className="sm:hidden">考核</span>
+            <Award className="h-4 w-4 text-purple-400 shrink-0" />
+            <span className="hidden sm:inline whitespace-nowrap">毕业综合考核</span>
+            <span className="sm:hidden whitespace-nowrap">考核</span>
           </button>
         </nav>
 
