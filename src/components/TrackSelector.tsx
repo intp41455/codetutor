@@ -15,7 +15,8 @@ import {
   BookOpen,
   ArrowRight,
   Flame,
-  Terminal
+  Terminal,
+  Code2
 } from "lucide-react";
 import { TrackInfo, LearningTrackId, UserProgress, DailyChallenge } from "../types";
 import { DailyChallengeCard } from "./DailyChallengeCard";
@@ -42,7 +43,8 @@ const ICON_MAP: Record<string, any> = {
   Cpu,
   Bot,
   Users,
-  Terminal
+  Terminal,
+  Code2
 };
 
 export const TrackSelector: React.FC<TrackSelectorProps> = ({
@@ -59,7 +61,7 @@ export const TrackSelector: React.FC<TrackSelectorProps> = ({
   const [filter, setFilter] = useState<"all" | "foundation" | "framework" | "agent">("all");
 
   const filteredTracks = tracks.filter((track) => {
-    if (filter === "foundation") return ["track-python", "track-java", "track-linux", "track-ds", "track-sql"].includes(track.id);
+    if (filter === "foundation") return ["track-python", "track-java", "track-linux", "track-typescript", "track-ds", "track-sql"].includes(track.id);
     if (filter === "framework") return ["track-fastapi", "track-spring-boot"].includes(track.id);
     if (filter === "agent") return ["track-spring-ai", "track-agent", "track-multi-agent", "track-agent-systems"].includes(track.id);
     return true;

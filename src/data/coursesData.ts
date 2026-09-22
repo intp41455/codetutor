@@ -1393,6 +1393,13 @@ msg_req = ACLMessage(
 )
 board.send_message(msg_req)
 board.post_fact("rate_limit_design", "使用 Redis 令牌桶算法，容量100", agent_name="DevAgent")
+msg_inform = ACLMessage(
+    sender="DevAgent",
+    receiver="BusinessAgent",
+    performative=Performative.INFORM,
+    content={"status": "DESIGN_READY", "ref": "rate_limit_design"}
+)
+board.send_message(msg_inform)
 `,
         checkpoints: [
           {
@@ -2249,6 +2256,636 @@ journalctl -u agent-runner.service -n 50 --no-pager
           }
         ],
         githubAnalogy: "云原生微服务生产部署配置、Kubernetes Pod 探针与企业级自愈架构。"
+      }
+    ]
+  },
+  {
+    id: "track-typescript",
+    title: "12. TypeScript 现代全栈类型工程",
+    tagline: "从 JS 混乱混沌走向确定性，赋能 AI SDK、全栈框架与工程元编程",
+    description: "面向现代 AI 与全栈开发的强类型基石。从静态类型标注到 interface/type 契约，从可辨识联合与类型守卫到工业级泛型抽象，彻底读透 GitHub 上 Next.js、LangChain.js、AI SDK 等顶级项目的类型系统。",
+    icon: "Code2",
+    badgeColor: "blue",
+    tags: ["大前端与全栈", "AI SDK基石", "类型安全", "零运行时开销"],
+    capstoneChallenge: "为企业级多模型 AI Agent 网关设计一套零运行时错误、具备严格类型守卫与结构化输出推导的 TypeScript 架构",
+    lessons: [
+      {
+        id: "ts-101",
+        title: "静态类型契约：告别 undefined is not a function（基础标量与类型推导）",
+        trackId: "track-typescript",
+        estimatedMinutes: 15,
+        level: "零基础",
+        mentalModel: {
+          title: "药丸上的凹槽与工业级防呆插座",
+          metaphor: "原生 JavaScript 就像没有贴任何标签的透明塑料袋，装的是白糖还是剧毒砒霜，只有程序运行喝下去崩溃那一刻才知道（经典报错：TypeError: Cannot read properties of undefined）。而 TypeScript 是严苛的工厂安检模具，在你在编辑器敲键盘的刹那，就用类型契约把错误消灭在编译期。",
+          keyIntuition: "TypeScript 只是 JavaScript 的类型守卫外套。它在编译为 JS 部署后会被完全擦除（Type Stripping），享有 0 运行时性能损耗，却给你带来 100% 的心智确定性。"
+        },
+        explanationMarkdown: `### 🎯 为什么在 AI 时代必须精通 TypeScript？
+在当今 GitHub 开源生态中：
+1. **主流 AI 框架第一公民**：Vercel AI SDK、LangChain.js、OpenAI 官方 Node SDK、Anthropic Claude SDK 乃至 MCP (Model Context Protocol) 核心协议，全部采用 TypeScript 编写；
+2. **重构底气**：哪怕是用 AI Vibe Coding 辅助生成的成百上千行复杂代码，只要有严谨的类型定义，任何字段改动、类型不匹配都会立即标红，根本不怕改坏！
+
+---
+
+### 🧱 核心标量类型与推导
+- **基础类型**：\`string\`、\`number\`、\`boolean\`、\`string[]\`（数组）；
+- **特别类型**：\`null\`、\`undefined\`、\`void\`（函数无返回值）；
+- **类型推导（Type Inference）**：TS 极其聪明，不需要处处写类型。写 \`let count = 10;\`，它会自动推导出 \`number\`；
+- **函数类型签名**：明确标注入参和返回值，让意图一目了然：
+\`\`\`typescript
+function estimateTokenCost(prompt: string, maxTokens: number = 2048): number {
+  const estimatedTokens = Math.ceil(prompt.length / 4) + maxTokens;
+  return Number((estimatedTokens * 0.000002).toFixed(6));
+}
+\`\`\`
+
+---
+
+### ⚠️ 铁律：不要把 TypeScript 写成 AnyScript！
+很多初学者遇到报错就滥用 \`any\`：\`let data: any = ...\`。一旦用 \`any\`，相当于关闭了所有防盗门，整个文件退化为危险的原生 JS。
+
+### 📋 本节任务：
+1. 观察右侧函数 \`estimateAITokenUsage\` 的类型签名；
+2. 为函数参数 \`modelName\`（文本）、\`inputPrompt\`（文本）和 \`targetTokens\`（数字）标注明确的 TypeScript 类型；
+3. 为函数指定返回值类型为 \`number\`；
+4. 运行代码，查看编译器校验与控制台真实执行输出！`,
+        language: "typescript",
+        starterCode: `// 1. 请为函数添加精准的 TypeScript 静态类型标注
+function estimateAITokenUsage(modelName: string, inputPrompt: string, targetTokens: number): number {
+  // 简易字符 Token 估算：通常 1 个 Token 约等于 4 个英文字符或 1 个中文字符
+  const promptTokens = Math.ceil(inputPrompt.length / 3);
+  const totalTokens = promptTokens + targetTokens;
+  
+  console.log(\`[Model: \${modelName}] 输入提示词估算: \${promptTokens} Tokens, 目标总计: \${totalTokens} Tokens\`);
+  return totalTokens;
+}
+
+// 2. 调用该强类型函数并执行
+const prompt = "请分析这段 GitHub 仓库的依赖树与架构流程";
+const total = estimateAITokenUsage("gemini-3.8-flash", prompt, 1024);
+console.log("最终计费预估 Token 总数:", total);
+`,
+        solutionCode: `function estimateAITokenUsage(modelName: string, inputPrompt: string, targetTokens: number): number {
+  const promptTokens = Math.ceil(inputPrompt.length / 3);
+  const totalTokens = promptTokens + targetTokens;
+  
+  console.log(\`[Model: \${modelName}] 输入提示词估算: \${promptTokens} Tokens, 目标总计: \${totalTokens} Tokens\`);
+  return totalTokens;
+}
+
+const prompt = "请分析这段 GitHub 仓库的依赖树与架构流程";
+const total = estimateAITokenUsage("gemini-3.8-flash", prompt, 1024);
+console.log("最终计费预估 Token 总数:", total);
+`,
+        checkpoints: [
+          {
+            id: "chk-ts-1",
+            title: "标注函数入参类型与返回值",
+            description: "正确为 modelName、inputPrompt、targetTokens 以及返回值添加 string 和 number 类型",
+            testFunction: (code, output) => {
+              const passed = code.includes("modelName: string") && 
+                             code.includes("inputPrompt: string") && 
+                             code.includes("targetTokens: number") && 
+                             code.includes("): number");
+              return {
+                passed,
+                message: passed ? "✅ 基础标量类型与函数签名标注完全正确！" : "❌ 请确保参数与函数返回值带有规范的 : string 和 : number 标注"
+              };
+            }
+          },
+          {
+            id: "chk-ts-2",
+            title: "类型检查与函数调用验证",
+            description: "成功调用强类型函数并通过 console.log 打印结果",
+            testFunction: (code, output) => {
+              const passed = code.includes("estimateAITokenUsage(") && output.includes("Token");
+              return {
+                passed,
+                message: passed ? "✅ 类型静态检查 0 错误，程序在严格模式下稳定运行！" : "❌ 请确保调用了 estimateAITokenUsage 并有控制台输出"
+              };
+            }
+          }
+        ],
+        githubAnalogy: "所有现代前端与 Node.js 库的 index.d.ts 类型声明文件及基础函数入口。"
+      },
+      {
+        id: "ts-102",
+        title: "Interface 接口与 Type 别名：定义严谨的数据对象形状与 API 契约",
+        trackId: "track-typescript",
+        estimatedMinutes: 20,
+        level: "零基础",
+        mentalModel: {
+          title: "房屋建筑蓝图与商业订购合同",
+          metaphor: "在前后端交互、大模型输出和数据库交互时，数据都是复杂的 JSON 对象。如果不加约束，后端改了一个字段名字从 user_id 变成 userId，前端满屏爆红。Interface 就是一份法律合同，黑纸白字写明：必须有哪些字段、每个字段是什么类型、哪个字段允许选填（问号 ?）、哪个字段禁止篡改（readonly）。",
+          keyIntuition: "在真实开源库中，数据形状必须由 interface 或 type 事先锁定。只要双方遵守契约，无论代码怎么重构，编辑器都能自动提供智能补全（IntelliSense）并杜绝拼写错误。"
+        },
+        explanationMarkdown: `### 📜 Interface 核心语法速记
+
+\`\`\`typescript
+interface ChatMessage {
+  readonly id: string;       // 只读：创建后不可修改
+  role: "user" | "model" | "system"; // 字面量联合类型
+  content: string;           // 消息正文
+  tokenCount?: number;       // 可选属性：可能为空
+}
+\`\`\`
+
+---
+
+### 🆚 \`interface\` 与 \`type\` 的最佳实践建议：
+- **定义对象结构、API 响应**：优先使用 \`interface\`，支持面向对象的 \`extends\` 继承与声明合并；
+- **定义联合类型、原始别名、工具类型**：优先使用 \`type\`（例如 \`type Role = "admin" | "guest"\`）。
+
+### 📋 本节任务：
+1. 观察右侧代码中为 AI Agent 会话定义的 \`AgentSession\` 接口；
+2. 为该接口添加 \`title\`（文本）、\`messageCount\`（数字）以及可选属性 \`systemPrompt?\`（可选文本）；
+3. 实例化一个符合该接口规范的会话对象，并通过 \`console.log\` 打印其信息！`,
+        language: "typescript",
+        starterCode: `// 1. 定义消息单项契约
+interface MessageItem {
+  id: string;
+  role: "user" | "assistant" | "tool";
+  content: string;
+}
+
+// 2. 请完善 Agent 会话元数据接口
+interface AgentSession {
+  sessionId: string;
+  title: string;
+  messageCount: number;
+  systemPrompt?: string; // 可选属性，以 ? 结尾
+  messages: MessageItem[];
+}
+
+// 3. 创建一个严格符合 AgentSession 契约的实例
+const currentSession: AgentSession = {
+  sessionId: "sess_ai_2026_09",
+  title: "GitHub 开源架构分析专家",
+  messageCount: 1,
+  systemPrompt: "你是一个资深架构师，专门指导开源项目拆解。",
+  messages: [
+    {
+      id: "msg_1",
+      role: "user",
+      content: "请帮我画出这个 FastAPI 项目的主体流程图"
+    }
+  ]
+};
+
+console.log(\`[会话加载成功] 会话: \${currentSession.title}, 包含消息数: \${currentSession.messages.length}\`);
+`,
+        solutionCode: `interface MessageItem {
+  id: string;
+  role: "user" | "assistant" | "tool";
+  content: string;
+}
+
+interface AgentSession {
+  sessionId: string;
+  title: string;
+  messageCount: number;
+  systemPrompt?: string;
+  messages: MessageItem[];
+}
+
+const currentSession: AgentSession = {
+  sessionId: "sess_ai_2026_09",
+  title: "GitHub 开源架构分析专家",
+  messageCount: 1,
+  systemPrompt: "你是一个资深架构师，专门指导开源项目拆解。",
+  messages: [
+    {
+      id: "msg_1",
+      role: "user",
+      content: "请帮我画出这个 FastAPI 项目的主体流程图"
+    }
+  ]
+};
+
+console.log(\`[会话加载成功] 会话: \${currentSession.title}, 包含消息数: \${currentSession.messages.length}\`);
+`,
+        checkpoints: [
+          {
+            id: "chk-ts-3",
+            title: "定义 AgentSession 接口契约",
+            description: "包含 title、messageCount 与可选属性 systemPrompt?",
+            testFunction: (code, output) => {
+              const passed = code.includes("interface AgentSession") && 
+                             code.includes("title: string") && 
+                             code.includes("messageCount: number") && 
+                             code.includes("systemPrompt?:");
+              return {
+                passed,
+                message: passed ? "✅ 结构化数据接口与可选属性契约定义标准规范！" : "❌ 请确保 AgentSession 包含 title: string, messageCount: number 和 systemPrompt?: string"
+              };
+            }
+          },
+          {
+            id: "chk-ts-4",
+            title: "对象契约实例化与数据校验",
+            description: "正确创建对象实例并成功通过 TypeScript 类型检查",
+            testFunction: (code, output) => {
+              const passed = code.includes("currentSession: AgentSession") && output.includes("会话加载成功");
+              return {
+                passed,
+                message: passed ? "✅ 对象实例严格吻合接口定义，类型推导与编译 100% 通过！" : "❌ 请确保 currentSession 声明并使用了 AgentSession 类型"
+              };
+            }
+          }
+        ],
+        githubAnalogy: "OpenAI SDK 的 ChatCompletionCreateParams、LangChain 的 BaseMessage 核心结构。"
+      },
+      {
+        id: "ts-103",
+        title: "联合类型与字面量守卫：可辨识联合（Discriminated Unions）消除逻辑盲区",
+        trackId: "track-typescript",
+        estimatedMinutes: 20,
+        level: "进阶",
+        mentalModel: {
+          title: "自带条形码与标签的封闭包裹",
+          metaphor: "初学者设计网络请求或状态机时，经常把所有字段堆在一起：{ loading, data, error }。这会导致荒谬的幽灵状态——比如 loading=true 时竟然还能读到旧的 data，或者 error 存在时 data 居然也有值。而可辨识联合（Discriminated Unions）就像每一个状态都有一个独一无二的专属条形码字段（例如 status: 'success' | 'error'），当条形码是 'success' 时，编译器自动保证只有 data 没有 error！",
+          keyIntuition: "在 switch(item.type) 或 if 检查后，TypeScript 会进行自动类型收窄（Type Narrowing）。从此再也不需要到处打问号（obj?.data?.items）提心吊胆！"
+        },
+        explanationMarkdown: `### 🛡️ 可辨识联合（Discriminated Unions）实战范式
+这是写出工业级高鲁棒性 TypeScript 代码最重要的模式：
+
+\`\`\`typescript
+type AgentEvent = 
+  | { type: "token"; text: string }
+  | { type: "tool_call"; toolName: string; args: Record<string, any> }
+  | { type: "done"; totalDurationMs: number };
+
+function handleAgentEvent(event: AgentEvent) {
+  switch (event.type) {
+    case "token":
+      // 在这里，TS 100% 确定 event 具有 text 属性！
+      process.stdout.write(event.text);
+      break;
+    case "tool_call":
+      // 在这里，TS 100% 确定拥有 toolName 和 args！
+      console.log("调用工具:", event.toolName);
+      break;
+    case "done":
+      console.log("耗时:", event.totalDurationMs);
+      break;
+  }
+}
+\`\`\`
+
+---
+
+### 📋 本节任务：
+1. 观察右侧大模型 API 响应状态的可辨识联合类型 \`LLMResult\`；
+2. 完善 \`formatLLMResponse\` 函数，使用 \`switch (result.status)\` 或 \`if\` 进行类型守卫收窄；
+3. 当 \`status === "success"\` 时，安全读取 \`result.data\`；当 \`status === "error"\` 时，安全读取 \`result.errorMessage\`；
+4. 运行代码，见证编译器的零盲区推导！`,
+        language: "typescript",
+        starterCode: `// 1. 定义可辨识联合类型（Discriminated Union）
+type LLMResult = 
+  | { status: "loading"; progress: number }
+  | { status: "success"; data: string; tokensUsed: number }
+  | { status: "error"; errorCode: number; errorMessage: string };
+
+// 2. 编写类型收窄与守卫处理函数
+function formatLLMResponse(result: LLMResult): string {
+  switch (result.status) {
+    case "loading":
+      return \`[正在生成中...] 进度: \${result.progress}%\`;
+    case "success":
+      // 类型自动收窄：在此分支中直接安全访问 data 和 tokensUsed
+      return \`[生成成功] 结果: \${result.data} (消耗 \${result.tokensUsed} tokens)\`;
+    case "error":
+      // 类型自动收窄：在此分支中直接安全访问 errorMessage
+      return \`[生成失败! 错误码: \${result.errorCode}] 详情: \${result.errorMessage}\`;
+  }
+}
+
+// 3. 测试调用
+const response1: LLMResult = {
+  status: "success",
+  data: "已成功解析 GitHub 项目依赖关系！",
+  tokensUsed: 420
+};
+
+console.log(formatLLMResponse(response1));
+`,
+        solutionCode: `type LLMResult = 
+  | { status: "loading"; progress: number }
+  | { status: "success"; data: string; tokensUsed: number }
+  | { status: "error"; errorCode: number; errorMessage: string };
+
+function formatLLMResponse(result: LLMResult): string {
+  switch (result.status) {
+    case "loading":
+      return \`[正在生成中...] 进度: \${result.progress}%\`;
+    case "success":
+      return \`[生成成功] 结果: \${result.data} (消耗 \${result.tokensUsed} tokens)\`;
+    case "error":
+      return \`[生成失败! 错误码: \${result.errorCode}] 详情: \${result.errorMessage}\`;
+  }
+}
+
+const response1: LLMResult = {
+  status: "success",
+  data: "已成功解析 GitHub 项目依赖关系！",
+  tokensUsed: 420
+};
+
+console.log(formatLLMResponse(response1));
+`,
+        checkpoints: [
+          {
+            id: "chk-ts-5",
+            title: "实现可辨识联合的类型守卫",
+            description: "通过 status 字段对 loading、success、error 进行穷尽类型分支匹配",
+            testFunction: (code, output) => {
+              const passed = code.includes("result.status") && 
+                             code.includes("result.data") && 
+                             code.includes("result.errorMessage");
+              return {
+                passed,
+                message: passed ? "✅ 可辨识联合与类型收窄完全掌握，消灭一切运行时空指针盲区！" : "❌ 请确保处理了 result.status 的三种分支并读取属性"
+              };
+            }
+          },
+          {
+            id: "chk-ts-6",
+            title: "函数返回与安全格式化输出",
+            description: "运行代码输出格式化后的成功响应文本",
+            testFunction: (code, output) => {
+              const passed = output.includes("生成成功") && output.includes("420 tokens");
+              return {
+                passed,
+                message: passed ? "✅ 输出结果与类型匹配完全一致！" : "❌ 控制台输出未检测到生成成功的格式化内容"
+              };
+            }
+          }
+        ],
+        githubAnalogy: "Redux / Zustand 状态流转、React useActionState 返回值、以及 Vercel AI SDK 的 StreamPart 协议。"
+      },
+      {
+        id: "ts-104",
+        title: "泛型抽象（Generics）：像工业模具一样编写高复用函数与 API 客户端",
+        trackId: "track-typescript",
+        estimatedMinutes: 25,
+        level: "进阶",
+        mentalModel: {
+          title: "支持灌装任意饮品的真空保温杯",
+          metaphor: "如果你造一个杯子只能装可乐，那装咖啡就得重新造个杯子；如果为了省事随便装什么都不检查（像 any 一样），最后喝到肥皂水就完了。泛型 <T> 就是一个'类型占位符模具'：当杯子倒入牛奶，杯子的类型立刻推导为 Cup<Milk>；当倒入咖啡，立刻变为 Cup<Coffee>。既最大化了代码复用，又保留了完美的类型安全！",
+          keyIntuition: "在阅读 GitHub 开源项目的 API 客户端、数据库 ORM 或数据结构库时，你会频繁看到 <T>、<TData>、<TError>。不要恐惧尖括号，它就是'把类型当成参数传进去'而已！"
+        },
+        explanationMarkdown: `### 🧬 泛型（Generics）标准写法
+
+\`\`\`typescript
+// 1. 泛型响应外壳接口
+interface ApiResponse<TData> {
+  code: number;
+  message: string;
+  data: TData; // 具体的业务数据类型由调用方指定！
+  timestamp: number;
+}
+
+// 2. 泛型包装函数
+function wrapSuccessResponse<T>(payload: T): ApiResponse<T> {
+  return {
+    code: 200,
+    message: "OK",
+    data: payload,
+    timestamp: Date.now()
+  };
+}
+\`\`\`
+
+---
+
+### 📋 本节任务：
+1. 观察通用的 API 响应模具 \`ApiResponse<T>\`；
+2. 定义一个具体的业务接口 \`AIModelMeta\`，包含 \`modelId\`（文本）与 \`maxContextWindow\`（数字）；
+3. 使用泛型函数 \`createApiResponse<AIModelMeta>\` 将元数据包装为强类型的 API 响应；
+4. 运行代码，体验泛型带来的零丢失字段智能推导！`,
+        language: "typescript",
+        starterCode: `// 1. 通用泛型容器：TData 是类型形参
+interface ApiResponse<TData> {
+  code: number;
+  success: boolean;
+  data: TData;
+}
+
+// 2. 泛型构造辅助函数
+function createApiResponse<T>(payload: T): ApiResponse<T> {
+  return {
+    code: 200,
+    success: true,
+    data: payload
+  };
+}
+
+// 3. 定义具体的业务实体
+interface AIModelMeta {
+  modelId: string;
+  provider: string;
+  maxContextWindow: number;
+}
+
+// 4. 调用泛型函数，享受端到端的强类型绑定
+const metaData: AIModelMeta = {
+  modelId: "gemini-3.8-flash",
+  provider: "Google AI",
+  maxContextWindow: 1048576
+};
+
+const response = createApiResponse<AIModelMeta>(metaData);
+
+console.log(\`[泛型响应封装成功] 模型: \${response.data.modelId}, 上下文窗口: \${response.data.maxContextWindow}\`);
+`,
+        solutionCode: `interface ApiResponse<TData> {
+  code: number;
+  success: boolean;
+  data: TData;
+}
+
+function createApiResponse<T>(payload: T): ApiResponse<T> {
+  return {
+    code: 200,
+    success: true,
+    data: payload
+  };
+}
+
+interface AIModelMeta {
+  modelId: string;
+  provider: string;
+  maxContextWindow: number;
+}
+
+const metaData: AIModelMeta = {
+  modelId: "gemini-3.8-flash",
+  provider: "Google AI",
+  maxContextWindow: 1048576
+};
+
+const response = createApiResponse<AIModelMeta>(metaData);
+
+console.log(\`[泛型响应封装成功] 模型: \${response.data.modelId}, 上下文窗口: \${response.data.maxContextWindow}\`);
+`,
+        checkpoints: [
+          {
+            id: "chk-ts-7",
+            title: "理解泛型类型形参 <TData> 与泛型函数",
+            description: "正确定义泛型接口并使用 createApiResponse<AIModelMeta> 完成装箱",
+            testFunction: (code, output) => {
+              const passed = code.includes("interface ApiResponse<TData>") && 
+                             code.includes("createApiResponse<") && 
+                             code.includes("AIModelMeta");
+              return {
+                passed,
+                message: passed ? "✅ 泛型模具机制掌握透彻，已跨越 TypeScript 最关键的技术分水岭！" : "❌ 请确保包含泛型接口 ApiResponse<TData> 与泛型调用"
+              };
+            }
+          },
+          {
+            id: "chk-ts-8",
+            title: "验证嵌套泛型数据解包",
+            description: "能够通过 response.data 准确访问业务实体的专属属性",
+            testFunction: (code, output) => {
+              const passed = code.includes("response.data.modelId") && output.includes("gemini-3.8-flash");
+              return {
+                passed,
+                message: passed ? "✅ 嵌套泛型字段在编译期完整保留，智能感知与校验通过！" : "❌ 控制台未检测到预期的模型信息输出"
+              };
+            }
+          }
+        ],
+        githubAnalogy: "Axios.get<T>()、TanStack Query 的 useQuery<TData>()、Prisma ORM 查询结果类型推导。"
+      },
+      {
+        id: "ts-105",
+        title: "生产实战：Zod 结构化契约与 GitHub 顶级 AI 开源项目类型系统解构",
+        trackId: "track-typescript",
+        estimatedMinutes: 25,
+        level: "实战",
+        mentalModel: {
+          title: "海关安检机与双重保险丝",
+          metaphor: "TypeScript 类型只存在于写代码和编译阶段，浏览器和 Node.js 运行时根本看不到 TS 类型。当大模型吐出一个 JSON 字符串时，你把它强制写为 'as AgentPlan'，万一大模型少输出了一个核心字段，运行时依然当场闪退！工业级开源框架（如 LangChain / Vercel AI SDK）采用 '静态 TS 契约 + 运行时 Schema 校验' 双保险——用类似 Zod 的方式在海关入口严密核验每一项数据，不合格当场拒签！",
+          keyIntuition: "学会在阅读 GitHub 开源项目时快速定位 packages/core/types 或 src/types.ts。看懂了它的核心接口和工具类型（如 Partial<T>、Record<K, V>），整个项目的骨架流程就彻底一目了然！"
+        },
+        explanationMarkdown: `### 🚀 工业级标准：常用内置工具类型（Utility Types）
+
+TypeScript 自带了一套极其强大的类型变身工具：
+- \`Partial<T>\`：把一个接口里的所有字段全都变成可选属性（例如在更新操作时不需要传全部字段）；
+- \`Pick<T, "id" | "title">\`：从复杂接口中只挑出需要的某几个字段；
+- \`Record<string, any>\`：定义键值对映射字典。
+
+---
+
+### 🔍 解构 GitHub 开源项目：类型驱动开发（Type-Driven Development）
+当你面对一个陌生的顶级开源项目（例如 10 万 Star 的项目）：
+1. **第一步不要看几千行实现逻辑**，直奔 \`src/types.ts\` 或 \`interfaces.ts\`；
+2. 找出核心领域的 3 个主要 Interface（如 \`Tool\`, \`Agent\`, \`ExecutionStep\`）；
+3. 观察函数签名入参与出参——只要搞清楚了输入什么、输出什么，中间的具体算法用 AI 辅助甚至自己写都游刃有余！
+
+### 📋 本节任务：
+1. 观察右侧代码中为多智能体规划器定义的 \`AgentExecutionPlan\`；
+2. 使用内置工具类型 \`Partial<AgentExecutionPlan>\` 定义可支持局部补丁更新的函数 \`updatePlanDraft\`；
+3. 运行代码，完成 TypeScript 体系的终极进阶！`,
+        language: "typescript",
+        starterCode: `// 1. 定义完整的生产级 Agent 执行规划接口
+interface AgentExecutionPlan {
+  planId: string;
+  goal: string;
+  steps: string[];
+  maxRetries: number;
+  isCompleted: boolean;
+}
+
+// 2. 使用 TypeScript 内置工具类型 Partial<T>
+// 这样在草稿阶段更新时，允许只传入需要修改的子集属性（如仅更新 steps）
+type PlanUpdateDraft = Partial<AgentExecutionPlan>;
+
+function updatePlanDraft(original: AgentExecutionPlan, patch: PlanUpdateDraft): AgentExecutionPlan {
+  // 合并原有计划与局部补丁更新
+  return {
+    ...original,
+    ...patch
+  };
+}
+
+// 3. 初始全量计划
+const initialPlan: AgentExecutionPlan = {
+  planId: "plan_001",
+  goal: "克隆并分析 GitHub 陌生项目依赖",
+  steps: ["阅读 README", "检查 package.json"],
+  maxRetries: 3,
+  isCompleted: false
+};
+
+// 4. 局部增量打补丁：无需传全量字段，安全且强类型保护
+const updatedPlan = updatePlanDraft(initialPlan, {
+  steps: ["阅读 README", "检查 package.json", "运行单元测试验证流程"],
+  isCompleted: true
+});
+
+console.log(\`[计划更新完成] ID: \${updatedPlan.planId}, 步骤数: \${updatedPlan.steps.length}, 已完结: \${updatedPlan.isCompleted}\`);
+`,
+        solutionCode: `interface AgentExecutionPlan {
+  planId: string;
+  goal: string;
+  steps: string[];
+  maxRetries: number;
+  isCompleted: boolean;
+}
+
+type PlanUpdateDraft = Partial<AgentExecutionPlan>;
+
+function updatePlanDraft(original: AgentExecutionPlan, patch: PlanUpdateDraft): AgentExecutionPlan {
+  return {
+    ...original,
+    ...patch
+  };
+}
+
+const initialPlan: AgentExecutionPlan = {
+  planId: "plan_001",
+  goal: "克隆并分析 GitHub 陌生项目依赖",
+  steps: ["阅读 README", "检查 package.json"],
+  maxRetries: 3,
+  isCompleted: false
+};
+
+const updatedPlan = updatePlanDraft(initialPlan, {
+  steps: ["阅读 README", "检查 package.json", "运行单元测试验证流程"],
+  isCompleted: true
+});
+
+console.log(\`[计划更新完成] ID: \${updatedPlan.planId}, 步骤数: \${updatedPlan.steps.length}, 已完结: \${updatedPlan.isCompleted}\`);
+`,
+        checkpoints: [
+          {
+            id: "chk-ts-9",
+            title: "熟练运用 Partial<T> 工具类型",
+            description: "定义类型别名 PlanUpdateDraft = Partial<AgentExecutionPlan>",
+            testFunction: (code, output) => {
+              const passed = code.includes("Partial<AgentExecutionPlan>") && code.includes("updatePlanDraft");
+              return {
+                passed,
+                message: passed ? "✅ 熟练掌握 Partial 高级工具类型与对象属性打补丁机制！" : "❌ 请确保使用了 Partial<AgentExecutionPlan>"
+              };
+            }
+          },
+          {
+            id: "chk-ts-10",
+            title: "完成工程级计划更新闭环",
+            description: "验证更新后计划的 steps 扩展与状态完结",
+            testFunction: (code, output) => {
+              const passed = output.includes("计划更新完成") && output.includes("步骤数: 3");
+              return {
+                passed,
+                message: passed ? "✅ 恭喜！顺利通关 TypeScript 现代全栈类型工程全套实战！" : "❌ 控制台输出未检测到包含 3 个步骤的更新完成日志"
+              };
+            }
+          }
+        ],
+        githubAnalogy: "GitHub 顶级开源项目（如 Prisma Client、TRPC、Zod、Next.js App Router）底层类型元编程基石。"
       }
     ]
   }

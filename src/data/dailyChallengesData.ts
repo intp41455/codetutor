@@ -208,6 +208,61 @@ Exiting process...
     ],
     hint: "思考：怎么查出是哪个进程（PID）在偷听 8000 端口？怎么在不影响系统其他进程的情况下单独清理它？",
     takeaway: "💡 架构师心法：生产服务器切忌无脑重启！掌握【端口查询 (lsof -i / netstat) -> 确认身份 (ps -fp <PID>) -> 信号终止 (kill -15 优雅退出 / kill -9 强杀)】标准三部曲。"
+  },
+  {
+    id: "daily-2026-09-25",
+    dateStr: "2026-09-25",
+    title: "TypeScript 类型击穿事故：类型断言 (as) 与运行时白屏陷阱",
+    category: "ai_code_reading",
+    categoryLabel: "TypeScript全栈实战审判",
+    difficulty: "中等",
+    xpReward: 100,
+    question: "某开发者为快速调通大模型接口，使用了类型断言：`const result = (await callLLM()) as AgentPlan;`。结果在生产环境中，大模型偶尔未输出 `planSteps` 字段，导致后续页面访问 `result.planSteps.length` 时直接触发 `TypeError: Cannot read properties of undefined` 引发白屏事故。作为技术负责人，最严谨可靠的防御方案是什么？",
+    contextCode: `// 生产线隐患代码：
+interface AgentPlan {
+  planTitle: string;
+  planSteps: string[];
+}
+
+async function handleUserTask() {
+  // 危险操作：强制把未经验证的 LLM 原始 JSON 断言为 AgentPlan
+  const raw = await callLLM();
+  const plan = raw as AgentPlan;
+  
+  // 当 LLM 漏输出 planSteps 时，此行直接导致生产崩溃！
+  console.log("执行步骤数:", plan.planSteps.length);
+}
+`,
+    language: "typescript",
+    type: "multiple_choice",
+    options: [
+      {
+        id: "opt-1",
+        text: "在 tsconfig.json 中关闭 strict 严格模式，让编译器不报错即可。",
+        isCorrect: false,
+        explanation: "严重错误！关闭 strict 只是自欺欺人，不仅无法解决运行时崩溃，还会使整个项目的类型防御彻底失效。"
+      },
+      {
+        id: "opt-2",
+        text: "把 TypeScript 全部重构成原生 JavaScript，就不会有类型困扰了。",
+        isCorrect: false,
+        explanation: "荒谬！换成原生 JS 同样会在读取 undefined.length 时抛出致命 TypeError 崩溃。"
+      },
+      {
+        id: "opt-3",
+        text: "引入运行时校验（如 Zod / 运行时类型守卫），在数据进入系统边界时做 Schema 验证，验证不通过则触发重试或降级，杜绝盲目使用 'as' 假装数据安全。",
+        isCorrect: true,
+        explanation: "正确！TS 类型在运行时会被完全擦除。面对不可控的外部数据（大模型输出、第三方 API），必须结合运行时校验（如 Zod Schema）构筑真实防线！"
+      },
+      {
+        id: "opt-4",
+        text: "每次报错后让用户手动刷新浏览器页面。",
+        isCorrect: false,
+        explanation: "错误！这是完全不负责任的体验，严重损坏系统的可靠性与品牌形象。"
+      }
+    ],
+    hint: "思考：TypeScript 的类型在代码编译部署到 Node.js 或浏览器之后还存在吗？大模型吐出的 JSON 是不是完全不受控的外部输入？",
+    takeaway: "💡 架构师心法：'as SomeType'（类型断言）本质是在对编译器说谎。针对任何非受控外部数据（API 返回、LLM 文本），永远坚持【运行时 Schema 验证 + TS 静态推导】的零击穿金标准！"
   }
 ];
 

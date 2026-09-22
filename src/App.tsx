@@ -9,6 +9,7 @@ import { TrackSelector } from "./components/TrackSelector";
 import { CodecademyWorkspace } from "./components/CodecademyWorkspace";
 import { GitHubDeconstructionLab } from "./components/GitHubDeconstructionLab";
 import { VibeCodingControlRoom } from "./components/VibeCodingControlRoom";
+import { CodeAuditAndTestCenter } from "./components/CodeAuditAndTestCenter";
 import { GraduationCapstoneModal } from "./components/GraduationCapstoneModal";
 import { DailyChallengeModal } from "./components/DailyChallengeModal";
 import { AITutorDrawer } from "./components/AITutorDrawer";
@@ -232,6 +233,13 @@ export default function App() {
           <VibeCodingControlRoom
             onCompleteCase={handleCompleteVibeCase}
             completedCaseIds={progress.completedVibeCases}
+          />
+        )}
+
+        {/* Tab 4: 代码审核体系与自动化测试中心 */}
+        {activeTab === "code-audit" && (
+          <CodeAuditAndTestCenter
+            onBackToCurriculum={() => setActiveTab("curriculum")}
           />
         )}
       </main>

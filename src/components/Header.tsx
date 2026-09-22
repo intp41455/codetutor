@@ -3,6 +3,7 @@ import {
   BookOpen, 
   GitBranch, 
   ShieldAlert, 
+  ShieldCheck,
   Award, 
   Sparkles, 
   Bot, 
@@ -66,7 +67,7 @@ export const Header: React.FC<HeaderProps> = ({
             }`}
           >
             <BookOpen className="h-4 w-4 text-indigo-400" />
-            <span>9大体系课程</span>
+            <span>12大体系课程</span>
           </button>
 
           <button
@@ -101,6 +102,24 @@ export const Header: React.FC<HeaderProps> = ({
               <span>Vibe Coding 掌控力</span>
               <span className="hidden md:inline-block rounded bg-amber-500/20 px-1.5 py-0.2 text-[10px] text-amber-300 font-mono">
                 代码审查
+              </span>
+            </span>
+          </button>
+
+          <button
+            id="nav-tab-code-audit"
+            onClick={() => setActiveTab("code-audit")}
+            className={`flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium transition-all ${
+              activeTab === "code-audit"
+                ? "bg-slate-800 text-white shadow-sm border border-slate-700"
+                : "text-slate-400 hover:bg-slate-900 hover:text-slate-200"
+            }`}
+          >
+            <ShieldCheck className="h-4 w-4 text-teal-400" />
+            <span className="flex items-center gap-1.5">
+              <span>代码审核与质检</span>
+              <span className="hidden xl:inline-block rounded bg-teal-500/20 px-1.5 py-0.2 text-[10px] text-teal-300 font-mono">
+                自动化测试
               </span>
             </span>
           </button>

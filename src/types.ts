@@ -2,6 +2,7 @@ export type LearningTrackId =
   | "track-python"
   | "track-java"
   | "track-linux"
+  | "track-typescript"
   | "track-ds"
   | "track-sql"
   | "track-fastapi"
@@ -15,6 +16,7 @@ export type NavTab =
   | "curriculum" 
   | "github-lab" 
   | "vibe-coding" 
+  | "code-audit"
   | "capstone";
 
 export interface Checkpoint {
@@ -37,7 +39,7 @@ export interface Lesson {
     keyIntuition: string; // 核心直觉
   };
   explanationMarkdown: string;
-  language: "python" | "java" | "sql" | "json" | "bash" | "shell";
+  language: "python" | "java" | "sql" | "json" | "bash" | "shell" | "typescript";
   starterCode: string;
   solutionCode: string;
   checkpoints: Checkpoint[];
@@ -159,7 +161,7 @@ export interface DailyChallenge {
   xpReward: number;
   question: string;
   contextCode?: string;
-  language: "python" | "java" | "sql" | "bash" | "shell";
+  language: "python" | "java" | "sql" | "bash" | "shell" | "typescript";
   type: "code_fix" | "multiple_choice";
   options?: {
     id: string;

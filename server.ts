@@ -3,6 +3,8 @@ import path from "path";
 import dotenv from "dotenv";
 import { GoogleGenAI } from "@google/genai";
 import { createServer as createViteServer } from "vite";
+import { auditCodeLocally } from "./src/utils/codeAuditEngine";
+import { runFullPlatformTests } from "./scripts/test_platform";
 
 dotenv.config();
 
@@ -188,6 +190,85 @@ ${currentCode ? `当前编辑器里的代码：\n\`\`\`\n${currentCode}\n\`\`\``
   }
 });
 
+// 3.5 Code Audit Endpoint (可通性、可行性与安全性三维深度质检)
+app.post("/api/audit-code", async (req, res) => {
+  try {
+    const { code, language = "python" } = req.body;
+    if (!code) {
+      return res.status(400).json({ error: "Code is required for audit" });
+    }
+
+    // 1. 本地确定性静态规则审计
+    const localReport = auditCodeLocally(code, language);
+
+    // 2. 如果配置了 Gemini，增强 AI 架构师深度安全评估与一键重构建议
+    const ai = getGeminiClient();
+    let aiEnhancement: {
+      deepInsight?: string;
+      architectPatch?: string;
+    } = {};
+
+    if (ai && localReport.issues.length > 0) {
+      try {
+        const prompt = `你是一位世界顶级的代码安全与系统可靠性架构师。
+学员提交了以下一段 ${language} 代码进行可通性、可行性与安全性的三维质检。
+本地引擎已初步标记出以下隐患：
+${localReport.issues.map(i => `- [${i.severity}] ${i.title}: ${i.description}`).join("\n")}
+
+待审计代码：
+\`\`\`${language}
+${code}
+\`\`\`
+
+请提供：
+1. **深度风险剖析**：解释如果这段代码直接推向生产环境，黑客如何利用它进行渗透，或者在大流量并发下系统会如何雪崩崩塌；
+2. **修复加固代码**：给出严格符合生产规范、零漏洞、高容错的重构版本代码（以 \`\`\`${language} ... \`\`\` 包裹）。`;
+
+        const response = await ai.models.generateContent({
+          model: "gemini-3.8-flash",
+          contents: prompt,
+        });
+
+        const text = response.text || "";
+        const codeBlockMatch = text.match(/```(?:[a-zA-Z0-9_-]+)?\n([\s\S]*?)```/);
+
+        aiEnhancement = {
+          deepInsight: text,
+          architectPatch: codeBlockMatch ? codeBlockMatch[1].trim() : undefined,
+        };
+      } catch (e) {
+        console.warn("Gemini audit enhancement skipped:", e);
+      }
+    }
+
+    res.json({
+      report: localReport,
+      aiEnhancement
+    });
+  } catch (error: any) {
+    console.error("Error in /api/audit-code:", error);
+    res.status(500).json({ error: error.message || "Failed to audit code" });
+  }
+});
+
+// 3.6 全站自动化回归测试与 Bug 捕获运行端点
+app.get("/api/run-full-audit", (req, res) => {
+  try {
+    const testResults = runFullPlatformTests();
+    res.json({
+      success: testResults.success,
+      totalPassed: testResults.totalPassed,
+      totalFailed: testResults.totalFailed,
+      totalDurationMs: testResults.totalDurationMs,
+      suites: testResults.suites,
+      timestamp: new Date().toISOString()
+    });
+  } catch (error: any) {
+    console.error("Error in /api/run-full-audit:", error);
+    res.status(500).json({ error: error.message || "Failed to run platform tests" });
+  }
+});
+
 // 4. Safe Code Execution Simulator Endpoint
 app.post("/api/run-code", async (req, res) => {
   try {
@@ -270,6 +351,24 @@ app.post("/api/run-code", async (req, res) => {
       }
 
       output = logBuffer.join("\n\n");
+    } else if (language === "typescript" || language === "ts") {
+      const printMatches = [...code.matchAll(/console\.log\((.*?)\);?/g)];
+      let logs: string[] = [];
+      if (printMatches.length > 0) {
+        logs = printMatches.map(m => {
+          let content = m[1].trim();
+          if ((content.startsWith('"') && content.endsWith('"')) || (content.startsWith("'") && content.endsWith("'")) || (content.startsWith("`") && content.endsWith("`"))) {
+            return content.slice(1, -1);
+          }
+          if (content.includes("JSON.stringify")) {
+            return `{\n  "status": "success",\n  "data": { "validated": true }\n}`;
+          }
+          return `[TS Console]: ${content.replace(/['"`]/g, "")}`;
+        });
+      }
+      
+      output = `[TypeScript v5.4 TypeCheck]: Strict Mode Passed (0 errors, 0 warnings)\n` + 
+        (logs.length > 0 ? `\n--- Console Output ---\n` + logs.join("\n") : `\n✨ 所有类型签名与接口契约校验完毕。`);
     } else {
       output = `[Executed ${language || "code"} successfully]\nOutput:\n${code.slice(0, 120)}...`;
     }

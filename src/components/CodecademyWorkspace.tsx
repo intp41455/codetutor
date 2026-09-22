@@ -360,7 +360,13 @@ export const CodecademyWorkspace: React.FC<CodecademyWorkspaceProps> = ({
           <div className="flex items-center gap-2">
             <span className="flex items-center gap-1.5 rounded bg-slate-800 px-2.5 py-1 text-xs font-mono font-medium text-slate-200 border border-slate-700">
               <TerminalIcon className="h-3.5 w-3.5 text-indigo-400" />
-              <span>{lesson.language === "bash" || lesson.language === "shell" ? "terminal.sh" : `main.${lesson.language === "python" ? "py" : lesson.language === "java" ? "java" : "sql"}`}</span>
+              <span>
+                {lesson.language === "bash" || lesson.language === "shell" 
+                  ? "terminal.sh" 
+                  : lesson.language === "typescript"
+                  ? "main.ts"
+                  : `main.${lesson.language === "python" ? "py" : lesson.language === "java" ? "java" : "sql"}`}
+              </span>
             </span>
             <span className="text-[11px] font-mono text-slate-400 uppercase">
               {lesson.language}
